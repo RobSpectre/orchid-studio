@@ -135,7 +135,10 @@ class DrumTests(unittest.TestCase):
             kit=library.upload('Click',base64.b64encode(buf.getvalue()).decode(),'CC0')
             self.assertEqual(kit['license'],'CC0');self.assertEqual(len(library.sounds),1)
             sound=next(iter(library.sounds.values()))
-            self.assertIn('/assets/',sound['instrument'])
+            import xml.etree.ElementTree as ET
+            sample_path=Path(next(ET.fromstring(sound['instrument']).iter('filename')).text)
+            self.assertEqual(sample_path.parent.name,'assets')
+            self.assertTrue(sample_path.is_file())
             archive=Path(folder)/'bad.h2drumkit'
             with tarfile.open(archive,'w:gz') as tar:
                 info=tarfile.TarInfo('../escape');info.size=1;tar.addfile(info,io.BytesIO(b'x'))
