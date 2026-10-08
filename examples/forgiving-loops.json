@@ -1,0 +1,468 @@
+{
+  "version": 1,
+  "kind": "orchid-loops",
+  "settings": {
+    "bars": 4,
+    "grid": 0.5,
+    "count_in": 4
+  },
+  "performance": {
+    "bpm": 124,
+    "mode": "pattern",
+    "step_beats": 0.5,
+    "gate": 0.5,
+    "velocity_limit": 72,
+    "spread_beats": 0.25,
+    "harp_octaves": 3,
+    "slop": 0.35,
+    "seed": 0,
+    "pattern": "pulse",
+    "chord_window_ms": 8
+  },
+  "layers": [
+    {
+      "slot": 1,
+      "name": "Layer 1",
+      "muted": false,
+      "chords": [
+        {
+          "beat": 0,
+          "duration": 4.0,
+          "note": 60,
+          "velocity": 64
+        },
+        {
+          "beat": 0,
+          "duration": 4.0,
+          "note": 64,
+          "velocity": 64
+        },
+        {
+          "beat": 0,
+          "duration": 4.0,
+          "note": 67,
+          "velocity": 64
+        },
+        {
+          "beat": 4.0,
+          "duration": 4.0,
+          "note": 57,
+          "velocity": 52
+        },
+        {
+          "beat": 4.0,
+          "duration": 4.0,
+          "note": 60,
+          "velocity": 52
+        },
+        {
+          "beat": 4.0,
+          "duration": 4.0,
+          "note": 64,
+          "velocity": 52
+        },
+        {
+          "beat": 8.0,
+          "duration": 4.0,
+          "note": 53,
+          "velocity": 52
+        },
+        {
+          "beat": 8.0,
+          "duration": 4.0,
+          "note": 57,
+          "velocity": 52
+        },
+        {
+          "beat": 8.0,
+          "duration": 4.0,
+          "note": 60,
+          "velocity": 52
+        },
+        {
+          "beat": 12.0,
+          "duration": 4.0,
+          "note": 55,
+          "velocity": 52
+        },
+        {
+          "beat": 12.0,
+          "duration": 4.0,
+          "note": 59,
+          "velocity": 52
+        },
+        {
+          "beat": 12.0,
+          "duration": 4.0,
+          "note": 62,
+          "velocity": 52
+        }
+      ],
+      "notes": [
+        {
+          "beat": 0.0,
+          "duration": 0.375,
+          "note": 60,
+          "velocity": 64
+        },
+        {
+          "beat": 0.5,
+          "duration": 0.375,
+          "note": 64,
+          "velocity": 64
+        },
+        {
+          "beat": 1.0,
+          "duration": 0.375,
+          "note": 67,
+          "velocity": 64
+        },
+        {
+          "beat": 1.5,
+          "duration": 0.375,
+          "note": 60,
+          "velocity": 64
+        },
+        {
+          "beat": 2.0,
+          "duration": 0.375,
+          "note": 64,
+          "velocity": 64
+        },
+        {
+          "beat": 2.5,
+          "duration": 0.375,
+          "note": 67,
+          "velocity": 64
+        },
+        {
+          "beat": 3.0,
+          "duration": 0.375,
+          "note": 60,
+          "velocity": 64
+        },
+        {
+          "beat": 3.5,
+          "duration": 0.375,
+          "note": 64,
+          "velocity": 64
+        },
+        {
+          "beat": 4.0,
+          "duration": 0.375,
+          "note": 57,
+          "velocity": 52
+        },
+        {
+          "beat": 4.5,
+          "duration": 0.375,
+          "note": 60,
+          "velocity": 52
+        },
+        {
+          "beat": 5.0,
+          "duration": 0.375,
+          "note": 64,
+          "velocity": 52
+        },
+        {
+          "beat": 5.5,
+          "duration": 0.375,
+          "note": 57,
+          "velocity": 52
+        },
+        {
+          "beat": 6.0,
+          "duration": 0.375,
+          "note": 60,
+          "velocity": 52
+        },
+        {
+          "beat": 6.5,
+          "duration": 0.375,
+          "note": 64,
+          "velocity": 52
+        },
+        {
+          "beat": 7.0,
+          "duration": 0.375,
+          "note": 57,
+          "velocity": 52
+        },
+        {
+          "beat": 7.5,
+          "duration": 0.375,
+          "note": 60,
+          "velocity": 52
+        },
+        {
+          "beat": 8.0,
+          "duration": 0.375,
+          "note": 53,
+          "velocity": 52
+        },
+        {
+          "beat": 8.5,
+          "duration": 0.375,
+          "note": 57,
+          "velocity": 52
+        },
+        {
+          "beat": 9.0,
+          "duration": 0.375,
+          "note": 60,
+          "velocity": 52
+        },
+        {
+          "beat": 9.5,
+          "duration": 0.375,
+          "note": 53,
+          "velocity": 52
+        },
+        {
+          "beat": 10.0,
+          "duration": 0.375,
+          "note": 57,
+          "velocity": 52
+        },
+        {
+          "beat": 10.5,
+          "duration": 0.375,
+          "note": 60,
+          "velocity": 52
+        },
+        {
+          "beat": 11.0,
+          "duration": 0.375,
+          "note": 53,
+          "velocity": 52
+        },
+        {
+          "beat": 11.5,
+          "duration": 0.375,
+          "note": 57,
+          "velocity": 52
+        },
+        {
+          "beat": 12.0,
+          "duration": 0.375,
+          "note": 55,
+          "velocity": 52
+        },
+        {
+          "beat": 12.5,
+          "duration": 0.375,
+          "note": 59,
+          "velocity": 52
+        },
+        {
+          "beat": 13.0,
+          "duration": 0.375,
+          "note": 62,
+          "velocity": 52
+        },
+        {
+          "beat": 13.5,
+          "duration": 0.375,
+          "note": 55,
+          "velocity": 52
+        },
+        {
+          "beat": 14.0,
+          "duration": 0.375,
+          "note": 59,
+          "velocity": 52
+        },
+        {
+          "beat": 14.5,
+          "duration": 0.375,
+          "note": 62,
+          "velocity": 52
+        },
+        {
+          "beat": 15.0,
+          "duration": 0.375,
+          "note": 55,
+          "velocity": 52
+        },
+        {
+          "beat": 15.5,
+          "duration": 0.375,
+          "note": 59,
+          "velocity": 52
+        }
+      ],
+      "settings": {
+        "bpm": 124,
+        "mode": "arp",
+        "step_beats": 0.5,
+        "gate": 0.75,
+        "velocity_limit": 72,
+        "spread_beats": 0.25,
+        "harp_octaves": 3,
+        "slop": 0.35,
+        "seed": 0,
+        "pattern": "pulse",
+        "chord_window_ms": 8
+      }
+    },
+    {
+      "slot": 2,
+      "name": "Layer 2",
+      "muted": false,
+      "chords": [
+        {
+          "beat": 0,
+          "duration": 4.0,
+          "note": 48,
+          "velocity": 44
+        },
+        {
+          "beat": 4.0,
+          "duration": 4.0,
+          "note": 45,
+          "velocity": 44
+        },
+        {
+          "beat": 8.0,
+          "duration": 4.0,
+          "note": 41,
+          "velocity": 44
+        },
+        {
+          "beat": 12.0,
+          "duration": 4.0,
+          "note": 43,
+          "velocity": 44
+        }
+      ],
+      "notes": [
+        {
+          "beat": 0.0,
+          "duration": 0.5,
+          "note": 48,
+          "velocity": 44
+        },
+        {
+          "beat": 1.0,
+          "duration": 0.5,
+          "note": 48,
+          "velocity": 44
+        },
+        {
+          "beat": 2.0,
+          "duration": 0.5,
+          "note": 48,
+          "velocity": 44
+        },
+        {
+          "beat": 3.0,
+          "duration": 0.5,
+          "note": 48,
+          "velocity": 44
+        },
+        {
+          "beat": 4.0,
+          "duration": 0.5,
+          "note": 45,
+          "velocity": 44
+        },
+        {
+          "beat": 5.0,
+          "duration": 0.5,
+          "note": 45,
+          "velocity": 44
+        },
+        {
+          "beat": 6.0,
+          "duration": 0.5,
+          "note": 45,
+          "velocity": 44
+        },
+        {
+          "beat": 7.0,
+          "duration": 0.5,
+          "note": 45,
+          "velocity": 44
+        },
+        {
+          "beat": 8.0,
+          "duration": 0.5,
+          "note": 41,
+          "velocity": 44
+        },
+        {
+          "beat": 9.0,
+          "duration": 0.5,
+          "note": 41,
+          "velocity": 44
+        },
+        {
+          "beat": 10.0,
+          "duration": 0.5,
+          "note": 41,
+          "velocity": 44
+        },
+        {
+          "beat": 11.0,
+          "duration": 0.5,
+          "note": 41,
+          "velocity": 44
+        },
+        {
+          "beat": 12.0,
+          "duration": 0.5,
+          "note": 43,
+          "velocity": 44
+        },
+        {
+          "beat": 13.0,
+          "duration": 0.5,
+          "note": 43,
+          "velocity": 44
+        },
+        {
+          "beat": 14.0,
+          "duration": 0.5,
+          "note": 43,
+          "velocity": 44
+        },
+        {
+          "beat": 15.0,
+          "duration": 0.5,
+          "note": 43,
+          "velocity": 44
+        }
+      ],
+      "settings": {
+        "bpm": 124,
+        "mode": "pattern",
+        "step_beats": 0.5,
+        "gate": 0.5,
+        "velocity_limit": 72,
+        "spread_beats": 0.25,
+        "harp_octaves": 3,
+        "slop": 0.35,
+        "seed": 0,
+        "pattern": "pulse",
+        "chord_window_ms": 8
+      }
+    },
+    {
+      "slot": 3,
+      "name": "Layer 3",
+      "muted": false,
+      "chords": [],
+      "notes": [],
+      "settings": null
+    },
+    {
+      "slot": 4,
+      "name": "Layer 4",
+      "muted": false,
+      "chords": [],
+      "notes": [],
+      "settings": null
+    }
+  ]
+}

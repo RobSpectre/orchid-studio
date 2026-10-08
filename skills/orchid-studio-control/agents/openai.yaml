@@ -1,0 +1,4 @@
+interface:
+  display_name: "Orchid Studio Control"
+  short_description: "Control Studio sounds, Perform, loops, drums and mixer"
+  default_prompt: "Use $orchid-studio-control to inspect Orchid Studio, find the right sound and Perform mode, and operate its API while preserving the session."

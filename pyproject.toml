@@ -1,18 +1,28 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "orchid-studio"
 version = "0.1.0"
-description = "Software performance project for Orchid MIDI and Pistil laptop audio"
+description = "Six-voice Pistil performance, loops and sample drums with one software clock"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY.md"]
 requires-python = ">=3.10"
+
+[project.urls]
+Repository = "https://github.com/RobSpectre/orchid-studio"
 
 [project.optional-dependencies]
 midi = ["python-rtmidi>=1.5.8,<2"]
+samples = ["numpy>=1.24"]
 
 [project.scripts]
 orchid-studio = "orchid_studio.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+orchid_studio = ["studio.html", "studio.css", "studio.js", "drum-editor.js", "sound_catalog.json", "native/*.swift"]

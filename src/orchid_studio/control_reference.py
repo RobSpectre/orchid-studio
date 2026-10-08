@@ -1,0 +1,93 @@
+"""Discoverable API reference and Studio control map (no device access)."""
+# Parameters are request fields besides command/id. Nested schemas are returned
+# by capabilities or the corresponding document command.
+ROWS = {
+ 'key-start':('Arm loaded loops to wake on a fresh raw-chord note.','enabled:boolean; input/chord_channel/settings/drums as loop-start when stopped','Starts armed at beat zero without count-in; paused loops resume at cursor. First note feeds Live Perform. Stop/panic disarm; enable again to rearm.'),
+ 'status':('Read transport, loops, sounds, routing, mixer and clock state.','none','Read-only'),
+ 'capabilities':('Discover commands, Perform settings and control map.','none','Read-only'),
+ 'command-help':('Read this command reference; omit name for all.','name?: command string','Read-only'),
+ 'sounds-list':('Map 100 Pistil slots and installed drum samples.','none','Read-only; factory descriptions are configuration-derived'),
+ 'events':('Read recent events after a cursor.','after?: event_id, default 0','Read-only; inspect truncated and last_event_id'),
+ 'perform-options':('List all Perform modes, banks, rhythms and settings schema.','none','Read-only'),
+ 'perform-configure':('Change defaults and the running looper monitor settings.','settings: partial capabilities.settings_schema','Does not change an already-running standalone Perform; use perform-update'),
+ 'perform':('Start Live Perform, optionally with drums.','input: exact MIDI name; chord_channel: 1–16; output_channel?: 1–16; settings?: partial settings; drums?: {engine:"studio",beat,volume}','Replaces current transport; routes to slot 5'),
+ 'perform-update':('Update running Live Perform.','settings: partial settings','Requires running Perform; queued; verify perform_updated event'),
+ 'play':('Play a MIDI session through Live AU.','session: version-1 MIDI session; bpm?: 30–300; transpose?: -48–48; repeats?: 1–128','Replaces transport; global BPM wins unless explicitly supplied'),
+ 'demo':('Play the built-in demonstration.','bpm?: 30–300; transpose?; repeats?','Replaces transport'),
+ 'tempo':('Set global BPM for every sequencer and outgoing clock.','bpm: 30–300 (UI 60–200); transition_seconds?: 0–10, default 2','Safe during playback; integrated Bézier ramp'),
+ 'pause':('Pause global playback and release notes.','none','Requires playback; finish/cancel take first'),
+ 'resume':('Resume global playback.','none','Requires paused/running transport; repress physical keys'),
+ 'stop':('Stop all sequencers and release voices.','none','Preserves recorded loops and sounds'),
+ 'panic':('Stop and release all notes, pedals and drum tails.','none','Preserves recorded loops and sounds'),
+ 'quit':('Shut down Studio cleanly.','none','Export session first; in-memory loops are not auto-saved'),
+ 'loop-configure':('Set loop length, quantization and count-in.','settings: {bars?:1–16,grid?:0|0.25|0.5|1,count_in?:0–16}','Stop loops; resizing requires empty layers'),
+ 'loop-start':('Play loops and monitor input; optional record slot and drums.','input; chord_channel; output_channel?; settings?; slot?:1–4; wait_for_key?:boolean (without slot); drums?:{engine:"studio",beat,volume}','Omit slot for immediate playback; count-in applies only with a recording slot; omit drums for no accompaniment'),
+ 'loop-record':('Arm a layer on the next loop boundary.','slot:1–4; settings?: Perform settings','Requires running loops; replaces that layer only after a completed nonempty take'),
+ 'loop-cancel':('Discard an armed/unfinished take.','none','Preserves existing recorded notes'),
+ 'loop-mute':('Mute/unmute one loop layer.','slot:1–4; muted:boolean','Available live'),
+ 'loop-step':('Insert a chord without timed physical input.','slot:1–4; beat; notes:[0–127] (1–16 notes); duration?:0.125+ beats, default 4; velocity?:1–127; settings?','Stop loops; insertion must fit length; same settings within a layer'),
+ 'loop-clear':('Clear one layer or all four.','slot?:1–4; omit for all','Playing/paused supported; blocked during takes; keeps sounds'),
+ 'loop-undo':('Undo/redo the latest take, step edit or clear.','none','Stop loops first; one swap-based undo level'),
+ 'loop-export':('Return session document with loops, six sounds, mixer and drum document.','none','Save returned document to a local file; does not bundle samples/song MIDI'),
+ 'loop-import':('Restore a saved session document.','document: loop-export.document','Stop transport; native host required for included instrument states'),
+ 'pistil-enable':('Start/recover installed native Pistil host and drum rack.','none','Stop playback; preserves licensed installation'),
+ 'pistil-status':('Inspect six AUs, meters, audio output and native errors.','none','Read-only; meters do not prove audible sound'),
+ 'layer-select':('Choose destination of next hardware Sound report.','slot:1–6 (loops 1–4, Perform 5, Play Along 6)','During take, selection stays on recording layer'),
+ 'layer-editor':('Open selected Pistil plugin editor.','slot:1–6','Native host required; use Computer Use for controls inside plugin'),
+ 'layer-preset':('Recall a numbered Pistil sound on one voice.','slot:1–6; preset:1–100','Native host; factory names from sounds-list; user slots vary'),
+ 'mixer-set':('Set independent volume/pan.','channel:layer-1|layer-2|layer-3|layer-4|drums|live|play-along; volume?:0–1.5; pan?:-1–1','Native host; available live; pan=0 centers'),
+ 'play-along':('Enable/configure the sixth direct-play voice.','enabled:boolean; input?:exact name; chord_channel?:1–16; velocity_limit?:1–127','Native host; plays while transport runs, including alongside loops/drums'),
+ 'sound-follow':('Enable/disable fresh hardware Sound-report following.','enabled?:boolean; input:exact name when enabling','Independent of note routes; next fresh dial movement updates selected slot plus slot 6'),
+ 'clock-configure':('Configure virtual MIDI clock publication.','enabled:boolean; offset_ms?:0–500','Stop transport first; 24 PPQN, Start/Stop/Continue, no hardware feedback'),
+ 'beats-list':('List drum arrangements, suggested tempos, vibe/tags, energy/density and best uses.','none','Read-only'),
+ 'beats-load':('Reload the native sample rack.','none','Stop transport'),
+ 'beats-select':('Choose drum arrangement without changing global BPM.','beat: catalog ID','During playback queues for next Studio bar'),
+ 'beats-play':('Start drums without loop or Perform playback.','beat: catalog ID; bpm?:30–300; volume?:0–1.5','Stop existing playback first'),
+ 'drums-length':('Crop/repeat arrangement to requested playback length.','bars: even integer 2–64, or null for source length','Live change queues to next bar; does not rewrite saved beat'),
+ 'beat-get':('Return saved and playback-length-adjusted beat JSON.','beat: ID','Read-only; document is saved source, playback_document includes length override'),
+ 'beat-edit':('Transform a draft without saving: clone/new, rename, resize, swing, lanes, steps and bars.','document OR beat: source; action: capabilities.beat_editor.actions; action-specific fields in beat_editor','Returns document + undo_document; no library/playback mutation until beat-save'),
+ 'beat-save':('Validate/persist a beat document; also imports beat JSON.','document: orchid-beat version 1','Selected playing beat updates next bar; clone ID to preserve original'),
+ 'kits-list':('List available sounds, kits and provenance.','none','Read-only'),
+ 'kits-import':('Import local Hydrogen-compatible kit/archive.','path: local directory or archive','Stop playback; single-sample unpitched kits'),
+ 'sample-upload':('Import a local PCM WAV as a drum sound.','name; data:base64 WAV; license?:text','Stop playback; <=8 MiB WAV and <=30 seconds'),
+ 'sound-preview':('Play one drum sample.','sound: sample ID','Stop transport; native rack must be loaded'),
+ 'drums':('Drum volume and legacy backend actions.','action; value?; strip?; see capabilities.drum_actions','Prefer mixer-set for native volume/pan and Studio transport commands'),
+}
+
+UI_MAP = {
+ 'Start on key':{'commands':['key-start'],'notes':'Arms loops and selected drums silently; fresh raw Chord note starts/resumes. Performed/Bass/CC and held-note repeats do not wake. Stop disarms.'},
+ 'Transport and Space':{'commands':['perform','loop-start','beats-play','play','pause','resume','stop','panic'],'notes':'Read status. Space resumes/pauses the shared transport; when stopped it starts loaded loops with the configured drum accompaniment and live voice. It works from selectors, sliders and buttons; text entry keeps spaces. API callers choose which start explicitly.'},
+ 'BPM dial / suggested beat BPM':{'commands':['tempo','beats-list'],'notes':'Suggested BPM is metadata; apply it explicitly with tempo.'},
+ 'Mixer / center pan':{'commands':['mixer-set'],'notes':'Seven channels; volume=0 silences, pan=0 centers.'},
+ 'Pistil sound / per-layer selectors / editor / destination':{'commands':['sounds-list','layer-select','layer-preset','layer-editor','pistil-status'],'notes':'Each loop card changes only its own slot and preserves notes; mixer destination picker passes an explicit slot. Factory map describes defaults, not edited current patches.'},
+ 'Perform dial / bank / rhythm / fine controls':{'commands':['perform-options','perform-configure','perform-update'],'notes':'Bank is navigation; use its mode ID. Every fine control is in settings_schema.'},
+ 'Play Along On/Off':{'commands':['play-along'],'notes':'Separate raw-chord voice, slot 6.'},
+ 'Loop record / cancel / mute / clear / undo':{'commands':['loop-start','loop-record','loop-cancel','loop-mute','loop-clear','loop-undo'],'notes':'See command prerequisites; explicit slot avoids selected-layer ambiguity.'},
+ 'Loop length / snap / count-in':{'commands':['loop-configure'],'notes':'bars, grid and count_in fields.'},
+ 'Loop step / rest / cursor':{'commands':['loop-step'],'notes':'Rest advances the client beat cursor without inserting a note; next loop-step supplies the new beat.'},
+ 'Start drums with loops':{'commands':['loop-start'],'notes':'Pass drums object to include; omit for none. Applies to new start, not pause/resume.'},
+ 'Save/open loops':{'commands':['loop-export','loop-import'],'notes':'API returns/accepts document. Agent writes/reads local JSON; file chooser itself is browser-only.'},
+ 'Drum selection / play / length / reload':{'commands':['beats-list','beats-select','beats-play','drums-length','beats-load'],'notes':'Shared clock, bar-quantized selection.'},
+ 'Drum editor copy/new / steps / accents / bars / lanes / swing':{'commands':['beat-get','beat-edit','beat-save'],'notes':'Draft transforms, explicit save. bar/step are 1-based. See beat_editor metadata.'},
+ 'Drum draft undo / export / import':{'commands':['beat-edit','beat-get','beat-save'],'notes':'Keep undo_document per edit, pop client history to undo. Export returned document to JSON; import via beat-save. Unsaved browser drafts are private to that tab and are not remotely readable.'},
+ 'Sample preview / upload / kit import':{'commands':['sound-preview','sample-upload','kits-import','kits-list'],'notes':'Read library IDs and licenses; no file chooser required.'},
+ 'Loop/drum visualizers and diagnostics':{'commands':['status','beat-get','events','pistil-status'],'notes':'status.looper.layers[].notes plus position; drums.sequencer plus document; native meters. Rendering is client-side.'},
+ 'MIDI input/channel / clock / Sound following':{'commands':['perform','loop-start','play-along','clock-configure','sound-follow'],'notes':'Exact input name; confirmed raw Chord channel 3; no hardware output.'},
+}
+
+BEAT_EDITOR={
+ 'indexing':'bar and target_bar 1–64 (within document); step 1–16; beat offsets in documents are zero-based quarter-note beats',
+ 'actions':{
+  'clone':'new_id, name: new identity; preserve notes', 'new':'new_id, name: new identity with empty hits; uses source lanes and length',
+  'rename':'name', 'resize':'bars 1–64; repeats/crops source hits, UI normally uses even 2–64',
+  'swing':'swing 0–0.45', 'lane-add':'lane:{id,name,sound,gain,muted}',
+  'lane-set':'lane:lane ID; settings:{name?,sound?,gain?,muted?}',
+  'step':'lane:lane ID; bar; step; mode?:toggle|set|remove|accent; velocity?:0.01–1; probability?:0–1. Accent toggles .55/.9 and preserves existing timing.',
+  'clear-bar':'bar', 'copy-bar':'bar, target_bar (wrap next bar in client)', 'repeat-bar':'bar; replace every bar with this bar'},
+ 'undo':'Keep response.undo_document in your history; assigning it as your next document undoes the draft edit. beat-save publishes only when requested.',
+}
+
+
+def reference(name=None):
+    if name is not None and name not in ROWS:raise ValueError('unknown command name')
+    return {key:{'description':v[0],'parameters':v[1],'behavior':v[2]} for key,v in ROWS.items() if name is None or name==key}

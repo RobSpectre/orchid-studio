@@ -1,0 +1,878 @@
+{
+  "kind": "orchid-beat",
+  "version": 1,
+  "id": "paper-comet",
+  "name": "Paper Comet",
+  "bars": 12,
+  "suggested_bpm": 154,
+  "genre": "footwork",
+  "feel": "Restless kick/clap exchanges and brief triplet hat answers; compact bursts separated by air.",
+  "vibe": "Restless kick/clap exchanges and brief triplet hat answers; compact bursts separated by air.",
+  "tags": [
+    "footwork",
+    "juke",
+    "triplets",
+    "playful"
+  ],
+  "energy": "high",
+  "density": "busy",
+  "best_for": "Short chopped hooks, playful bass phrases and rhythmic experiments",
+  "arrangement": "Bars 1\u20134 establish the core; 5\u20138 add quiet responses; 9\u201312 return with a small variation. Breathing bars: 6.",
+  "bank": "Orchid Studio \u2014 Many Rooms",
+  "kit": "Mixed electronic rack \u00b7 Circuitry / 808 / Electric Empire",
+  "swing": 0,
+  "lanes": [
+    {
+      "id": "kick",
+      "name": "Pocket Kick",
+      "sound": "orchid-circuitry-pocket-kick",
+      "gain": 0.95,
+      "muted": false
+    },
+    {
+      "id": "snare",
+      "name": "Analog Soft Clap",
+      "sound": "orchid-circuitry-analog-soft-clap",
+      "gain": 0.66,
+      "muted": false
+    },
+    {
+      "id": "hat",
+      "name": "FM Fine Hat",
+      "sound": "orchid-circuitry-fm-fine-hat",
+      "gain": 0.38,
+      "muted": false
+    },
+    {
+      "id": "perc",
+      "name": "FM Noise Tick",
+      "sound": "orchid-circuitry-fm-noise-tick",
+      "gain": 0.24,
+      "muted": false
+    }
+  ],
+  "hits": [
+    {
+      "lane": "hat",
+      "beat": 0.0,
+      "velocity": 0.295,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 0.0,
+      "velocity": 0.82,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 0.333333,
+      "velocity": 0.197,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 0.666667,
+      "velocity": 0.295,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 1.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 1.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 2.0,
+      "velocity": 0.197,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 2.5,
+      "velocity": 0.295,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 2.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 2.5,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 3.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 4.0,
+      "velocity": 0.82,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 4.5,
+      "velocity": 0.295,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 4.75,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 5.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 5.5,
+      "velocity": 0.197,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 6.0,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 6.5,
+      "velocity": 0.295,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 6.75,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 7.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 7.5,
+      "velocity": 0.197,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 8.0,
+      "velocity": 0.295,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 8.0,
+      "velocity": 0.82,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 8.5,
+      "velocity": 0.197,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 9.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 9.5,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 10.0,
+      "velocity": 0.295,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 10.333333,
+      "velocity": 0.197,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 10.666667,
+      "velocity": 0.295,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 11.0,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 11.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 12.0,
+      "velocity": 0.82,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 12.5,
+      "velocity": 0.295,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 13.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 13.5,
+      "velocity": 0.197,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 13.75,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 14.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 14.5,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 15.0,
+      "velocity": 0.295,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 15.5,
+      "velocity": 0.197,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 15.5,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 15.75,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 16.0,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 16.0,
+      "velocity": 0.82,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 16.333333,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 16.666667,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 17.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 17.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 17.75,
+      "velocity": 0.25,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 18.0,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 18.5,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 18.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 18.5,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 19.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 19.75,
+      "velocity": 0.25,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 20.0,
+      "velocity": 0.82,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 21.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 23.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 24.0,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 24.0,
+      "velocity": 0.82,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 24.5,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 24.75,
+      "velocity": 0.25,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 25.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 25.5,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 26.0,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 26.333333,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 26.666667,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 26.75,
+      "velocity": 0.25,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 27.0,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 27.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 28.0,
+      "velocity": 0.82,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 28.25,
+      "velocity": 0.25,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 28.5,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 29.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 29.5,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 29.75,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 30.25,
+      "velocity": 0.25,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 30.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 30.5,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 31.0,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 31.5,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 31.5,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 31.75,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 32.0,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 32.0,
+      "velocity": 0.82,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 32.333333,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 32.666667,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 33.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 33.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 33.75,
+      "velocity": 0.22,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 34.0,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 34.5,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 34.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 34.5,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 35.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 35.75,
+      "velocity": 0.25,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 36.0,
+      "velocity": 0.82,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 36.5,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 36.75,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 37.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 37.25,
+      "velocity": 0.25,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 37.5,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 37.75,
+      "velocity": 0.22,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 38.0,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 38.5,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 38.75,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 39.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 39.25,
+      "velocity": 0.25,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 39.5,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 40.0,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 40.0,
+      "velocity": 0.82,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 40.5,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 40.75,
+      "velocity": 0.25,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 41.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 41.5,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 41.75,
+      "velocity": 0.22,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 42.0,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 42.333333,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 42.666667,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 42.75,
+      "velocity": 0.25,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 43.0,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 43.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 44.0,
+      "velocity": 0.82,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 44.25,
+      "velocity": 0.25,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 44.5,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 45.0,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 45.5,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 45.75,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 45.75,
+      "velocity": 0.22,
+      "probability": 1
+    },
+    {
+      "lane": "perc",
+      "beat": 46.25,
+      "velocity": 0.25,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 46.5,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 46.5,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 47.0,
+      "velocity": 0.36,
+      "probability": 1
+    },
+    {
+      "lane": "hat",
+      "beat": 47.5,
+      "velocity": 0.24,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 47.5,
+      "velocity": 0.66,
+      "probability": 1
+    },
+    {
+      "lane": "kick",
+      "beat": 47.75,
+      "velocity": 0.69,
+      "probability": 1
+    },
+    {
+      "lane": "snare",
+      "beat": 47.75,
+      "velocity": 0.25,
+      "probability": 1
+    }
+  ]
+}

@@ -16,3 +16,13 @@ local/
 *.msi
 *.dmg
 *.pkg
+*.zip
+*.tar.gz
+*.mid
+*.midi
+*.flac
+*.ogg
+*.aif
+*.app/
+*.pem
+*.key

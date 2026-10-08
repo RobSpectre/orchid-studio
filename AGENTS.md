@@ -2,6 +2,12 @@
 
 Build a software music system using Orchid as a MIDI controller and Pistil as the sound engine. The user accepts laptop audio and wants software key/transpose, tempo, looping and drums. Prioritize an audible demonstration and a portable CLI/API that agents can operate.
 
+Do not make GarageBand or another DAW a dependency. Use Pistil standalone as the first renderer, connected to Orchid Studio's virtual MIDI source. Investigate independent parts without adding a DAW requirement.
+
+Studio now plays Hydrogen-sourced drum samples in the native audio host alongside Pistil. Studio owns beat scheduling; do not restart Hydrogen’s independent transport. See `docs/DRUM_STUDIO.md` for editable beats, kit imports and native timing. The optional OSC fallback triggers individual hits. Distinguish scheduled/rendered events from listener-confirmed audio. Never substitute hardware drum messages.
+
+Orchid Studio must own the master clock and BPM. A held-arpeggio test found no response to incoming USB MIDI clock at 90/137 BPM, with or without Start; the hardware remained at 120 BPM. See `docs/CLOCK_INPUT_TEST.md`. Do not promise live native-arpeggiator synchronization or silently make Orchid the master. Preserve captured performance notes for software-tempo loop replay; software arpeggiation is a separate feature.
+
 Read `docs/RESEARCH_HANDOFF.md` and `docs/LINUX_PISTIL.md` before choosing the host architecture. The original research is in the sibling `../orchid_demo` repository; treat that archive as read-only in this project. It contains uncommitted work. Do not copy proprietary firmware/plugin binaries or credentials into this repository.
 
 Use Computer Use for Pistil/DAW UI. The user prefers us to operate the computer and asks only for physical actions, display readings or hearing confirmation. Play an attention chime before asking for that help (macOS: `afplay /System/Library/Sounds/Glass.aiff`; use an appropriate available equivalent on Linux). Do not claim audio was heard merely because MIDI was sent or a meter moved.

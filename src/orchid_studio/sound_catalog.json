@@ -1,0 +1,705 @@
+{
+  "provenance": "Names and synthesis/filter/effect summaries derived from the existing read-only Orchid 3.92 research catalog. No firmware, plugin binary, raw patch payload or hardware command is included. Pistil uses the corresponding engine; edited/user sounds can differ.",
+  "sounds": [
+    {
+      "number": 1,
+      "name": "Orchid EP",
+      "kind": "factory",
+      "description": "Reed electric-piano model; lowpass filter; effect slots: phaser + chorus; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 2,
+      "name": "Ghost",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + tremolo; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 3,
+      "name": "Analog Flower",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 4,
+      "name": "Cherry Blossom",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 5,
+      "name": "Eraserhead",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: tremolo + chorus; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 6,
+      "name": "Whoosh",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 7,
+      "name": "Neighbour",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 8,
+      "name": "Diamond Cave",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 9,
+      "name": "Creepy Crawlies",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: phaser + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 10,
+      "name": "Organ Stab",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: ensemble + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 11,
+      "name": "Porcelain Doll",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 12,
+      "name": "Malarky",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 13,
+      "name": "Smokey EP",
+      "kind": "factory",
+      "description": "Reed electric-piano model; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 14,
+      "name": "Hymn",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 15,
+      "name": "Opening Credits",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 16,
+      "name": "Raphael's Defeat",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: tremolo + chorus; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 17,
+      "name": "Rich Toy Piano",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 18,
+      "name": "Trembling Silver",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: tremolo + delay.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 19,
+      "name": "Tarbox Whirl",
+      "kind": "factory",
+      "description": "Reed electric-piano model; lowpass filter; effect slots: phaser + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 20,
+      "name": "Talkie",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 21,
+      "name": "Late Five",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: tremolo + chorus; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 22,
+      "name": "Breakfast",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: chorus + tremolo; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 23,
+      "name": "FM Harp One",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 24,
+      "name": "Distarp",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: ensemble + drive; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 25,
+      "name": "Space Harpsi",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 26,
+      "name": "Organ With Fifth",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: tremolo + chorus; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 27,
+      "name": "Fighter Jet",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: phaser + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 28,
+      "name": "Orchid Forest",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 29,
+      "name": "Rise And Shine",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: phaser + delay.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 30,
+      "name": "Shouting",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 31,
+      "name": "Nebula Swamp",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: flanger + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 32,
+      "name": "Frodo",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 33,
+      "name": "Piano Lesson",
+      "kind": "factory",
+      "description": "Reed electric-piano model; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 34,
+      "name": "90s Hit",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 35,
+      "name": "Abyss",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 36,
+      "name": "Silo",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: phaser + delay.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 37,
+      "name": "Waiting",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: phaser + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 38,
+      "name": "Pulsar",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 39,
+      "name": "Saw Stairs",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: ensemble + drive.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 40,
+      "name": "SNES",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: tremolo + delay.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 41,
+      "name": "Serengeti",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 42,
+      "name": "Nicholson",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 43,
+      "name": "Upsidedown",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 44,
+      "name": "Solaw",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 45,
+      "name": "Basement",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 46,
+      "name": "Warp World",
+      "kind": "factory",
+      "description": "Reed electric-piano model; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 47,
+      "name": "Pigs",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 48,
+      "name": "Garden Gnome",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 49,
+      "name": "FM Bongo",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: phaser + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 50,
+      "name": "Arctic",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 51,
+      "name": "Cat Choir",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: flanger + delay.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 52,
+      "name": "Slow Strings",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 53,
+      "name": "Molly Buzz",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 54,
+      "name": "Scooby",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 55,
+      "name": "Steel Drum",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 56,
+      "name": "In Reverse",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: phaser + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 57,
+      "name": "Falling Star",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 58,
+      "name": "Stylo Foam",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: phaser + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 59,
+      "name": "Space Sitar",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 60,
+      "name": "Access",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: tremolo + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 61,
+      "name": "Dead Punk",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: phaser + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 62,
+      "name": "Lemon",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: flanger + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 63,
+      "name": "Logical",
+      "kind": "factory",
+      "description": "Reed electric-piano model; lowpass filter; effect slots: chorus + phaser; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 64,
+      "name": "DX Guitar",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 65,
+      "name": "Diapason",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: phaser + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 66,
+      "name": "Whoops A Daisy",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: phaser + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 67,
+      "name": "Trout",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: phaser + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 68,
+      "name": "Plumerai La Tete",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: chorus + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 69,
+      "name": "Bitron",
+      "kind": "factory",
+      "description": "Virtual-analog synthesizer; lowpass filter; effect slots: phaser + delay.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 70,
+      "name": "Cosmic Day Spa",
+      "kind": "factory",
+      "description": "Fm synthesizer; lowpass filter; effect slots: phaser + delay; reverb send enabled.",
+      "description_basis": "factory configuration, not listening review"
+    },
+    {
+      "number": 71,
+      "name": "User Sound 01",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 72,
+      "name": "User Sound 02",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 73,
+      "name": "User Sound 03",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 74,
+      "name": "User Sound 04",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 75,
+      "name": "User Sound 05",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 76,
+      "name": "User Sound 06",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 77,
+      "name": "User Sound 07",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 78,
+      "name": "User Sound 08",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 79,
+      "name": "User Sound 09",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 80,
+      "name": "User Sound 10",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 81,
+      "name": "User Sound 11",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 82,
+      "name": "User Sound 12",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 83,
+      "name": "User Sound 13",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 84,
+      "name": "User Sound 14",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 85,
+      "name": "User Sound 15",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 86,
+      "name": "User Sound 16",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 87,
+      "name": "User Sound 17",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 88,
+      "name": "User Sound 18",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 89,
+      "name": "User Sound 19",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 90,
+      "name": "User Sound 20",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 91,
+      "name": "User Sound 21",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 92,
+      "name": "User Sound 22",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 93,
+      "name": "User Sound 23",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 94,
+      "name": "User Sound 24",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 95,
+      "name": "User Sound 25",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 96,
+      "name": "User Sound 26",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 97,
+      "name": "User Sound 27",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 98,
+      "name": "User Sound 28",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 99,
+      "name": "User Sound 29",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    },
+    {
+      "number": 100,
+      "name": "User Sound 30",
+      "kind": "user",
+      "description": "User-programmable sound slot. Its name, synthesis and tone depend on the locally saved patch.",
+      "description_basis": "user content; not inferred"
+    }
+  ]
+}

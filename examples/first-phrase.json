@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "bpm": 96,
+  "length_beats": 16,
+  "tracks": [
+    {
+      "name": "performed",
+      "channel": 1,
+      "notes": [
+        {
+          "beat": 0,
+          "duration": 0.65,
+          "note": 60,
+          "velocity": 48
+        },
+        {
+          "beat": 1,
+          "duration": 0.65,
+          "note": 64,
+          "velocity": 48
+        },
+        {
+          "beat": 2,
+          "duration": 0.65,
+          "note": 67,
+          "velocity": 48
+        },
+        {
+          "beat": 3,
+          "duration": 0.65,
+          "note": 71,
+          "velocity": 48
+        },
+        {
+          "beat": 4,
+          "duration": 0.65,
+          "note": 57,
+          "velocity": 48
+        },
+        {
+          "beat": 5,
+          "duration": 0.65,
+          "note": 60,
+          "velocity": 48
+        },
+        {
+          "beat": 6,
+          "duration": 0.65,
+          "note": 64,
+          "velocity": 48
+        },
+        {
+          "beat": 7,
+          "duration": 0.65,
+          "note": 67,
+          "velocity": 48
+        },
+        {
+          "beat": 8,
+          "duration": 0.65,
+          "note": 53,
+          "velocity": 48
+        },
+        {
+          "beat": 9,
+          "duration": 0.65,
+          "note": 57,
+          "velocity": 48
+        },
+        {
+          "beat": 10,
+          "duration": 0.65,
+          "note": 60,
+          "velocity": 48
+        },
+        {
+          "beat": 11,
+          "duration": 0.65,
+          "note": 64,
+          "velocity": 48
+        },
+        {
+          "beat": 12,
+          "duration": 0.65,
+          "note": 55,
+          "velocity": 48
+        },
+        {
+          "beat": 13,
+          "duration": 0.65,
+          "note": 59,
+          "velocity": 48
+        },
+        {
+          "beat": 14,
+          "duration": 0.65,
+          "note": 62,
+          "velocity": 48
+        },
+        {
+          "beat": 15,
+          "duration": 0.65,
+          "note": 67,
+          "velocity": 48
+        }
+      ]
+    }
+  ]
+}

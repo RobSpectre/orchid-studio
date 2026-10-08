@@ -1,0 +1,39 @@
+name: Studio checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  python:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ['3.10', '3.12']
+    runs-on: ${{ matrix.os }}
+    env:
+      ORCHID_STUDIO_DATA_DIR: ${{ runner.temp }}/orchid-test-data
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install . build
+      - run: python -m unittest discover -s tests -v
+      - run: python -m build
+      - run: python -m orchid_studio doctor
+  browser-shortcuts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/test_studio_shortcuts.cjs
+  native-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install .
+      - run: python -m orchid_studio build-host

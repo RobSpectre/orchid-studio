@@ -21,7 +21,7 @@ Pistil offers AU/VST3 hosting. Multiple instances can be desynced from Orchid to
 
 ## Hardware evidence to retain
 
-The sibling research repository is `/Users/rspectre/workspace/orchid_demo`, private remote `RobSpectre/orchid-midi-research`. It has substantial uncommitted research; do not reset, blanket-stage or move it.
+The sibling research repository is `../orchid_demo` (an optional private development archive, not an installation dependency). It has substantial uncommitted research; do not reset, blanket-stage or move it.
 
 Useful relative paths within that repository:
 
