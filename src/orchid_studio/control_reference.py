@@ -37,6 +37,8 @@ ROWS = {
  'layer-preset':('Recall a numbered Pistil sound on one voice.','slot:1–6; preset:1–100','Native host; factory names from sounds-list; user slots vary'),
  'mixer-set':('Set independent volume/pan.','channel:layer-1|layer-2|layer-3|layer-4|drums|live|play-along; volume?:0–1.5; pan?:-1–1','Native host; available live; pan=0 centers'),
  'play-along':('Enable/configure the sixth direct-play voice.','enabled:boolean; input?:exact name; chord_channel?:1–16; velocity_limit?:1–127','Native host; plays while transport runs, including alongside loops/drums'),
+ 'key-monitor':('Enable/disable the read-only record of Orchid key presses and voicing-dial clicks.','enabled?:boolean; input:exact name when enabling; chord_channel?:1-16, default 3','Opens an input only; independent of note routes. Starts with --sound-input'),
+ 'key-events':('Read recorded key presses, releases and voicing-dial clicks after a cursor.','after?: id, default 0','Read-only. press: t (time.monotonic), root, name, octave, notes, intervals, velocity, beat; release: held_s; voicing: value, delta. Compare names, not note numbers'),
  'sound-follow':('Enable/disable fresh hardware Sound-report following.','enabled?:boolean; input:exact name when enabling','Independent of note routes; next fresh dial movement updates selected slot plus slot 6'),
  'clock-configure':('Configure virtual MIDI clock publication.','enabled:boolean; offset_ms?:0–500','Stop transport first; 24 PPQN, Start/Stop/Continue, no hardware feedback'),
  'beats-list':('List drum arrangements, suggested tempos, vibe/tags, energy/density and best uses.','none','Read-only'),
@@ -72,7 +74,7 @@ UI_MAP = {
  'Drum draft undo / export / import':{'commands':['beat-edit','beat-get','beat-save'],'notes':'Keep undo_document per edit, pop client history to undo. Export returned document to JSON; import via beat-save. Unsaved browser drafts are private to that tab and are not remotely readable.'},
  'Sample preview / upload / kit import':{'commands':['sound-preview','sample-upload','kits-import','kits-list'],'notes':'Read library IDs and licenses; no file chooser required.'},
  'Loop/drum visualizers and diagnostics':{'commands':['status','beat-get','events','pistil-status'],'notes':'status.looper.layers[].notes plus position; drums.sequencer plus document; native meters. Rendering is client-side.'},
- 'MIDI input/channel / clock / Sound following':{'commands':['perform','loop-start','play-along','clock-configure','sound-follow'],'notes':'Exact input name; confirmed raw Chord channel 3; no hardware output.'},
+ 'MIDI input/channel / clock / Sound following':{'commands':['perform','loop-start','play-along','clock-configure','sound-follow','key-monitor','key-events'],'notes':'Exact input name; confirmed raw Chord channel 3; no hardware output.'},
 }
 
 BEAT_EDITOR={

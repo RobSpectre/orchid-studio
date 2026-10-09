@@ -111,6 +111,38 @@ movement; there is no stale-state replay or initial hardware query. Pistil's des
 switch must be off to accept the reports. The route is separate from the software
 Perform mode/BPM, which remains controlled by Studio.
 
+## Record physical key presses (key monitor)
+
+A read-only listener reports what the Orchid keyboard actually sent, for clients
+that check physical playing (for example a robot arm pressing keys):
+
+```json
+{"command":"key-monitor","input":"Orchid","chord_channel":3,"enabled":true}
+{"command":"key-events","after":0}
+{"command":"key-monitor","enabled":false}
+```
+
+`--sound-input Orchid` enables it at startup with the `--chord-channel` value.
+`status.key_monitor` reports readiness, input, channel, the press count and the last
+voicing-dial value. `key-events` returns events after an `id` cursor, plus
+`last_key_event_id`, `truncated` (only the last 512 are kept) and `now`:
+
+- `press`: `t`, `root`, `name` (C…B), `octave`, `notes`, `intervals`, `velocity`, `beat`.
+- `release`: `t`, `press_t`, `root`, `name`, `held_s` (when the press's last note stopped).
+- `voicing`: `t`, `value` (dial position), `delta` (clicks since the previous report).
+
+Observed on this Orchid: a key alone sends one note on the raw Chord channel; a held
+chord button adds its chord at the same instant with one velocity, and sends nothing
+itself. Note-ons within 8 ms are one press; its lowest note is the key. Velocity
+follows the strike (8–104 seen). The voicing dial sends channel-1 CC115 with an
+absolute position and can move the octave a key sounds in, so compare `name`, not
+note numbers. Channel 1's mirrored notes and Orchid's repeated note-offs are ignored.
+
+`t` is `time.monotonic()` at arrival, which other local processes on macOS and Linux
+read from the same clock. `beat` is Studio's timeline position at that instant, or
+null while the timeline is stopped. This opens a MIDI input only and sends nothing
+anywhere; it does not depend on any note route or Play Along.
+
 ## Named Hydrogen beats
 
 Generate the bank once from an installed TR808EmulationKit; the generator refuses to

@@ -22,7 +22,7 @@ COMMANDS = ("status", "capabilities", "events", "perform-options", "perform-conf
             "loop-configure", "loop-start", "loop-record", "loop-cancel", "loop-mute",
             "loop-step", "loop-clear", "loop-undo", "loop-export", "loop-import",
             "pistil-enable", "pistil-status", "layer-select", "layer-editor", "layer-preset",
-            "beat-get", "beat-save", "kits-list", "kits-import", "sample-upload", "sound-preview", "clock-configure", "drums-length", "tempo", "mixer-set", "pause", "resume", "play-along", "beat-edit", "sounds-list", "command-help", "key-start")
+            "beat-get", "beat-save", "kits-list", "kits-import", "sample-upload", "sound-preview", "clock-configure", "drums-length", "tempo", "mixer-set", "pause", "resume", "play-along", "beat-edit", "sounds-list", "command-help", "key-start", "key-monitor", "key-events")
 
 
 class Controller:
@@ -41,6 +41,7 @@ class Controller:
         self.sounds = SoundRouter(software_send)
         self.software_send = self.sounds.send_live
         self.sound_follower = None
+        self.key_monitor = None
         self.midi_connection = None
         from .drum_sequencer import StudioDrums
         from .drum_library import DrumLibrary
@@ -83,6 +84,7 @@ class Controller:
                 "play_along":dict(self.play_along.state),
                 "midi_clock":self.transport.clock_output.snapshot(),
                 "sound_follow": dict(self.sound_follower.state) if self.sound_follower else {"enabled": False},
+                "key_monitor": dict(self.key_monitor.state) if self.key_monitor else {"enabled": False},
                 "performance": {"input": live.input_name, "chord_channel": live.chord_channel,
                                 "output_channel": live.output_channel, "settings": {**live.config,"bpm":self.transport.timeline.target_bpm},
                                 "pending_updates": live.updates.qsize()} if live else None,
@@ -350,6 +352,27 @@ class Controller:
                 return {"status": "ok", "events": [e for e in self.events if e["event_id"] > after],
                         "last_event_id": self.event_id,
                         "truncated": bool(self.events and after < self.events[0]["event_id"] - 1)}
+        if command == "key-monitor":
+            from .key_monitor import KeyMonitor
+            enabled = request.get("enabled", True)
+            if type(enabled) is not bool:
+                raise ValueError("enabled must be true or false")
+            timeline = transport.timeline
+            def beat_at(t):  # beats only mean something while the Studio timeline runs
+                return timeline.position(t) if timeline.running else None
+            monitor = (KeyMonitor(self.report, request.get("input"), request.get("chord_channel", 3), beat_at)
+                       if enabled else None)
+            if self.key_monitor:
+                self.key_monitor.stop()
+            self.key_monitor = monitor
+            if monitor:
+                monitor.start()
+            return {"status": "ok", "key_monitor": dict(monitor.state) if monitor else {"enabled": False}}
+        if command == "key-events":
+            after = integer(request.get("after", 0), 0, 2**63 - 1, "after")
+            if not self.key_monitor:
+                raise ValueError("key-monitor is not enabled")
+            return {"status": "ok", **self.key_monitor.events(after), "key_monitor": dict(self.key_monitor.state)}
         if command == "sound-follow":
             from .sound_follow import SoundFollower
             enabled = request.get("enabled", True)
@@ -524,6 +547,8 @@ class Controller:
             self.play_along.stop()
             if self.sound_follower:
                 self.sound_follower.stop()
+            if self.key_monitor:
+                self.key_monitor.stop()
             try:
                 self.transport.panic()
             finally:

@@ -25,7 +25,7 @@ The same map is available from `command-help`; filter with `name`. This referenc
 | Drum draft undo / export / import | `beat-edit`, `beat-get`, `beat-save` | Keep undo_document per edit, pop client history to undo. Export returned document to JSON; import via beat-save. Unsaved browser drafts are private to that tab and are not remotely readable. |
 | Sample preview / upload / kit import | `sound-preview`, `sample-upload`, `kits-import`, `kits-list` | Read library IDs and licenses; no file chooser required. |
 | Loop/drum visualizers and diagnostics | `status`, `beat-get`, `events`, `pistil-status` | status.looper.layers[].notes plus position; drums.sequencer plus document; native meters. Rendering is client-side. |
-| MIDI input/channel / clock / Sound following | `perform`, `loop-start`, `play-along`, `clock-configure`, `sound-follow` | Exact input name; confirmed raw Chord channel 3; no hardware output. |
+| MIDI input/channel / clock / Sound following | `perform`, `loop-start`, `play-along`, `clock-configure`, `sound-follow`, `key-monitor`, `key-events` | Exact input name; confirmed raw Chord channel 3; no hardware output. |
 
 ## Commands
 
@@ -309,6 +309,22 @@ Enable/configure the sixth direct-play voice.
 
 **Behavior:** Native host; plays while transport runs, including alongside loops/drums
 
+### key-monitor
+
+Enable/disable the read-only record of Orchid key presses and voicing-dial clicks.
+
+**Fields:** enabled?:boolean; input:exact name when enabling; chord_channel?:1-16, default 3
+
+**Behavior:** Opens an input only; independent of note routes. Starts with --sound-input
+
+### key-events
+
+Read recorded key presses, releases and voicing-dial clicks after a cursor.
+
+**Fields:** after?: id, default 0
+
+**Behavior:** Read-only. press: t (time.monotonic), root, name, octave, notes, intervals, velocity, beat; release: held_s; voicing: value, delta. Compare names, not note numbers
+
 ### sound-follow
 
 Enable/disable fresh hardware Sound-report following.
@@ -457,7 +473,7 @@ Use the returned `document` as input for later edits and `beat-save`. For a step
 
 - The Studio API covers its controls and musical effects. Browser navigation, cursor positions, visual rendering, local file saving and unsaved draft history are client operations with the equivalents above.
 - `layer-editor` opens the Pistil plugin. Individual controls inside the vendor plugin are not Studio API parameters; use Computer Use for them. This audit does not claim full Pistil synthesis-parameter automation.
-- The API does not expose Orchid firmware/maintenance, physical key presses or arbitrary hardware MIDI output. Studio is the clock master.
+- The API does not expose Orchid firmware/maintenance, sending physical key presses or arbitrary hardware MIDI output. `key-events` only reports key presses Orchid sent. Studio is the clock master.
 - Six AU slots: loops 1–4, Perform 5, Play Along 6. Mixer keys use `live` for Perform and `play-along` for the direct voice.
 - Save the complete `loop-export.document` before restarting. Samples and supplied song MIDI live separately under ignored `local/`; exports do not bundle those files.
 - Set exact physical input and raw chord channel: this device was confirmed Performed 1, Bass 2, Chord 3. Never merge all streams.
