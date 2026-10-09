@@ -323,9 +323,38 @@ Changing tempo preserves the current beat, including during count-in or pause.
 {"command":"resume"}
 ```
 
-Mixer channels are `layer-1` through `layer-4`, `drums`, and `live`.
+Mixer channels are `layer-1` through `layer-4`, `drums`, `live`, and `play-along`.
 Volume is linear gain 0–1.5; pan is -1 (left) to +1 (right). Omitted fields retain
 their values. These controls require the native host and work while playing.
+
+`mixer-get` returns current `mixer` values and `mixer_automation` (active channels,
+start/target values, duration, curve, applied progress and last error). Both are
+also in `status`; `capabilities.mixer_schema` exposes channels, ranges and timing.
+`mixer-set` retains its single-channel syntax and also accepts a `channels` map:
+
+```json
+{"command":"mixer-set","channels":{"layer-1":{"volume":0},"layer-2":{"volume":0.7}},"transition_seconds":8,"curve":"smoothstep"}
+{"command":"mixer-cancel","channels":["layer-1","layer-2"]}
+```
+
+Supply either `channel` with volume/pan, or `channels`, never both. The complete
+request is validated before any channel changes. Omitted volume/pan fields retain
+their current values. `transition_seconds` is 0–120 (default 0, immediate), and
+`curve` is `linear` (default) or `smoothstep`. Fades return `queued`, run without
+client polling, and share one start time across the group. Updates are attempted
+at 50 Hz in monotonic seconds, including while stopped or paused; these are
+control-rate changes, not sample-accurate or beat-quantized automation. Sequential
+host writes are not an atomic audio transaction; a host failure may leave some
+channels updated. Failure cancels active fades and reports `mixer_error` plus the
+last error in `mixer_automation`. Completion emits `mixer_transition_completed`.
+
+A new command or UI fader move replaces the fade on each affected channel, starting
+from the latest applied values; other channel fades continue. `mixer-cancel`
+omits `channels` to cancel all and leaves the current balance in place. Stop,
+panic, session import, host recovery and shutdown cancel fades; pause/resume does
+not. Session exports store the applied mix, not unfinished fades. Save the
+`mixer-get.mixer` object and pass it back as `mixer-set.channels` to recall a mix.
+
 Live uses a fifth independent Pistil AU. `layer-select`, `layer-editor` and
 `layer-preset` accept slot 5 for Live. While recording, monitoring uses the take's
 layer; otherwise it uses Live. Select Live in the mixer to direct the Orchid
@@ -423,10 +452,12 @@ older four/five-voice sessions; six-voice exports use `pistil-au-v3`.
 
 Play Along listens only to the configured raw Chord channel (confirmed 3 on this
 Orchid). It sends unpatterned notes and sustain/sostenuto to slot 6. It excludes
-the performed/bass streams, clock, program changes and SysEx. It runs while the
-Studio transport runs, alongside live Perform, loops or drums; pause/stop releases
-its notes and pedals. Press keys again after resuming. Disable its toggle or turn
-its mixer down when you want only the generated Perform voice. It is not recorded
+the performed/bass streams, clock, program changes and SysEx. Whenever enabled,
+it plays independently of transport, including immediately after launch and while
+stopped or paused. Pause/resume leaves held Play Along notes alone. Stop/panic
+releases its notes and pedals without disabling the route; fresh keys still play.
+Disable its toggle or turn its mixer down when you want only the generated
+Perform voice. It is not recorded
 into loop takes. Hardware Perform is bypassed by consuming raw Chord notes.
 
 Fresh Sound-dial reports update Play Along as well as the explicitly selected
@@ -550,8 +581,8 @@ existing even 2–64-bar runtime override. No existing beat IDs are replaced.
 ### Studio-wide Space shortcut
 
 While the Studio page has keyboard focus, Space toggles the shared transport:
-loops, drum playback, Live Perform, Play Along and outgoing clock pause/resume
-together. From stopped, it starts the loaded loop session with its configured
+loops, drum playback, Live Perform and outgoing clock pause/resume together.
+Enabled Play Along remains available independently of transport. From stopped, it starts the loaded loop session with its configured
 Start drums with loops accompaniment and live input; it does not replay whichever
 section button was last used. Text-entry fields retain normal spaces. Selectors,
 checkboxes, mixer sliders, number inputs, dials and buttons all use global Space.
