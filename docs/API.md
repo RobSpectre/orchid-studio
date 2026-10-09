@@ -537,3 +537,14 @@ to dispatching the first loop/live note. They exclude hardware scanning, the
 they are not a measurement of physical-key-to-heard-sound latency. Null values
 mean no applicable note has yet been dispatched. A paused cursor between loop
 notes can legitimately wait until the next note for the loop metric.
+
+
+### Orchid connection indicator
+
+`status.orchid_connection` reports actual MIDI input port presence separately from
+transport and Sound-follow state: `input`, `connected` (true/false/null), `state`
+(connected/disconnected/unknown), `stale` and `error`. Inventory is read-only,
+polled about once per second off the transport thread. Results older than three
+seconds become unknown. It does not prove key events are arriving or audio is audible.
+The top bar shows green **Orchid connected**, red **Orchid disconnected**, or amber
+while checking/unavailable. Losing the Studio API clears the connected indication.

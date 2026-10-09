@@ -9,7 +9,10 @@ Project: the `orchid-studio` checkout. CLI: `orchid-studio` (or `.venv/bin/orchi
 Run `doctor` to locate runtime data; inspect `status.storage` for the running service.
 UI: `http://127.0.0.1:8765/`. Send JSON to `POST /command`.
 
-Read `status` and `capabilities` before changing a session. For a specific command,
+Read `status` and `capabilities` before changing a session.
+Check `status.orchid_connection` for current MIDI port presence; `connected:null`
+means unknown/unavailable, not disconnected. A ready Sound follower can have a stale
+port after USB changes. Connection does not imply transport is playing or audio is audible. For a specific command,
 use `{"command":"command-help","name":"loop-clear"}`. Without `name` it returns
 all command descriptions, fields, prerequisites, the UI map and drum-edit actions.
 Prefer this running API over opening competing MIDI/OSC clients.

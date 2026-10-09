@@ -41,6 +41,7 @@ class Controller:
         self.sounds = SoundRouter(software_send)
         self.software_send = self.sounds.send_live
         self.sound_follower = None
+        self.midi_connection = None
         from .drum_sequencer import StudioDrums
         from .drum_library import DrumLibrary
         self.library = drum_library or DrumLibrary()
@@ -70,8 +71,13 @@ class Controller:
     def snapshot(self):
         live = self.transport.live
         from .paths import data_dir, host_path
+        input_name = (self.sound_follower.input_name if self.sound_follower else
+                      live.input_name if live else self.play_along.state.get('input') or 'Orchid')
+        connection = self.midi_connection.snapshot(input_name) if self.midi_connection else {
+            'input':input_name,'connected':None,'state':'unknown','error':None,'stale':True}
         return {"playing": self.transport.playing,
                 "storage":{"data_dir":str(data_dir()),"host_path":str(host_path())},
+                "orchid_connection":connection,
                 "tempo":self.transport.timeline.snapshot(),
                 "mixer":copy.deepcopy(self.sounds.mix),
                 "play_along":dict(self.play_along.state),
@@ -514,6 +520,7 @@ class Controller:
     def close(self):
         with self.lock:
             self.closed.set()
+            if self.midi_connection:self.midi_connection.close()
             self.play_along.stop()
             if self.sound_follower:
                 self.sound_follower.stop()

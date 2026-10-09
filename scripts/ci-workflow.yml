@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/test_studio_shortcuts.cjs
+      - run: node --test tests/test_studio_shortcuts.cjs tests/test_connection_badge.cjs
   native-build:
     runs-on: macos-latest
     steps:

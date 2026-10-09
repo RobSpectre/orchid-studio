@@ -189,6 +189,9 @@ def serve(send, lines, report, drums=None, *, api_port=None, api_only=False, dru
     from contextlib import nullcontext
     from .api import Controller, HttpAPI
     controller = Controller(send, report, drums, drum_bank=drum_bank)
+    from .midi_connection import MidiConnection
+    controller.midi_connection = MidiConnection()
+    controller.midi_connection.start()
     try:
         if pistil_host:
             result=controller.execute({"command":"pistil-enable"})
