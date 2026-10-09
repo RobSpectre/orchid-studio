@@ -1,6 +1,6 @@
 ---
 name: orchid-studio-control
-description: Operate Orchid Studio through its local API — transport, six Pistil voices, Perform modes, loops, drums, beat editing, samples, mixer and MIDI clock. Use for Studio control and discovering its sound/Perform map; not for Orchid firmware or hardware parameter research.
+description: Operate Orchid Studio through its local API — transport, six Pistil voices, Perform modes, loops, drums, samples, mixer scenes, fades and MIDI clock. Use for Studio control, DJ-style mixing and discovering its sound/Perform map; not for Orchid firmware or hardware parameter research.
 ---
 
 # Orchid Studio control
@@ -25,6 +25,8 @@ Prefer this running API over opening competing MIDI/OSC clients.
   installed Perform mode and rhythm, descriptions and evidence limitations.
 - [Beat vibes](references/beat-vibes.md): 12 additional Many Rooms arrangements,
   from sparse ambient to garage, D&B, trance and footwork; IDs, tempos and uses.
+- [Mixer and DJ moves](references/mixer.md): grouped levels, fades, crossfades,
+  pan sweeps, mix snapshots and restoring the previous balance.
 - Live discovery is authoritative: `sounds-list` for Pistil/drum sounds,
   `perform-options` for modes/banks/descriptions/settings, `beats-list` for drum
   arrangements and `kits-list` for sample provenance. Optional Songs vary by machine.
@@ -56,8 +58,9 @@ physical Sound-dial destination. Fresh Sound reports also update slot 6. Selecti
 6 isolates that change from earlier voices. A new direct voice inherits the saved
 Live patch until a fresh report; Studio cannot reliably query current hardware sound.
 
-`play-along` enables raw notes/pedals while transport runs; pause/stop releases
-it. Its On/Off route is independent of Sound following. Native startup with
+`play-along` enables raw notes/pedals even while stopped or paused. Pause leaves
+held notes alone; Stop/panic releases them, and fresh keys still play. Its On/Off
+route is independent of Sound following. Native startup with
 `--sound-input Orchid --pistil-host` enables the confirmed channel-3 route.
 
 Space in the Studio UI pauses/resumes the whole transport, including with mixer,
@@ -72,6 +75,17 @@ at 24 PPQN with Start/Stop/Continue (no idle clock or SPP), default offset 40 ms
 Orchid's hardware arpeggiator is not a verified clock follower.
 
 ## Musical operations
+
+For mixer work, read `mixer-get` and `capabilities.mixer_schema`; retain the returned
+`mixer` object before a DJ move. `mixer-set` accepts one `channel` or a `channels`
+map, with `volume` (linear gain 0–1.5), `pan` (-1–1), optional `transition_seconds`
+(0–120) and `curve` (`linear` or `smoothstep`). Use one grouped request for a
+crossfade. Defaults are immediate; timed fades continue while stopped/paused.
+`queued` means accepted, not finished: verify `mixer_automation` or the
+`mixer_transition_completed` event, and check `mixer_error`. Manual changes replace
+fades on their channel. `mixer-cancel` freezes current values; Stop/panic also
+cancels fades. Restore the saved mixer with `mixer-set.channels`; never assume
+unity was the previous balance. Gain zero leaves sequencing/routing enabled.
 
 For Live Perform, `perform` starts; `perform-update` changes a running performance;
 `perform-configure` changes defaults and the looper monitor. Read settings bounds

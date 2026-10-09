@@ -11,7 +11,7 @@ The same map is available from `command-help`; filter with `name`. This referenc
 | Start on key | `key-start` | Arms loops and selected drums silently; fresh raw Chord note starts/resumes. Performed/Bass/CC and held-note repeats do not wake. Stop disarms. |
 | Transport and Space | `perform`, `loop-start`, `beats-play`, `play`, `pause`, `resume`, `stop`, `panic` | Read status. Space resumes/pauses the shared transport; when stopped it starts loaded loops with the configured drum accompaniment and live voice. It works from selectors, sliders and buttons; text entry keeps spaces. API callers choose which start explicitly. |
 | BPM dial / suggested beat BPM | `tempo`, `beats-list` | Suggested BPM is metadata; apply it explicitly with tempo. |
-| Mixer / center pan | `mixer-set` | Seven channels; volume=0 silences, pan=0 centers. |
+| Mixer / center pan | `mixer-get`, `mixer-set`, `mixer-cancel` | Seven channels; volume=0 silences, pan=0 centers. Grouped changes and timed fades support crossfades, drops and pan sweeps; manual faders override fades on their channel. |
 | Pistil sound / per-layer selectors / editor / destination | `sounds-list`, `layer-select`, `layer-preset`, `layer-editor`, `pistil-status` | Each loop card changes only its own slot and preserves notes; mixer destination picker passes an explicit slot. Factory map describes defaults, not edited current patches. |
 | Perform dial / bank / rhythm / fine controls | `perform-options`, `perform-configure`, `perform-update` | Bank is navigation; use its mode ID. Every fine control is in settings_schema. |
 | Play Along On/Off | `play-along` | Separate raw-chord voice, slot 6. |
@@ -25,7 +25,7 @@ The same map is available from `command-help`; filter with `name`. This referenc
 | Drum draft undo / export / import | `beat-edit`, `beat-get`, `beat-save` | Keep undo_document per edit, pop client history to undo. Export returned document to JSON; import via beat-save. Unsaved browser drafts are private to that tab and are not remotely readable. |
 | Sample preview / upload / kit import | `sound-preview`, `sample-upload`, `kits-import`, `kits-list` | Read library IDs and licenses; no file chooser required. |
 | Loop/drum visualizers and diagnostics | `status`, `beat-get`, `events`, `pistil-status` | status.looper.layers[].notes plus position; drums.sequencer plus document; native meters. Rendering is client-side. |
-| MIDI input/channel / clock / Sound following | `perform`, `loop-start`, `play-along`, `clock-configure`, `sound-follow` | Exact input name; confirmed raw Chord channel 3; no hardware output. |
+| MIDI input/channel / clock / Sound following | `perform`, `loop-start`, `play-along`, `clock-configure`, `clock`, `sound-follow`, `key-monitor`, `key-events` | Exact input name; confirmed raw Chord channel 3; no hardware output. |
 
 ## Commands
 
@@ -44,6 +44,14 @@ Read transport, loops, sounds, routing, mixer and clock state.
 **Fields:** none
 
 **Behavior:** Read-only
+
+### clock
+
+Read the beat timeline: bpm, beat, running/paused and t (time.monotonic() of the reading).
+
+**Fields:** none
+
+**Behavior:** Read-only; the MIDI clock output (24 PPQN) follows this timeline. beat at time x is beat + (x - t) * bpm / 60 while running, outside a tempo transition
 
 ### capabilities
 
@@ -293,13 +301,29 @@ Recall a numbered Pistil sound on one voice.
 
 **Behavior:** Native host; factory names from sounds-list; user slots vary
 
+### mixer-get
+
+Read current mixer values and active fades.
+
+**Fields:** none
+
+**Behavior:** Read-only; returns mixer plus mixer_automation. Values are linear gains and stereo pan; usable as a scene snapshot.
+
 ### mixer-set
 
-Set independent volume/pan.
+Set or fade volume/pan on one or several channels.
 
-**Fields:** channel:layer-1 / layer-2 / layer-3 / layer-4 / drums / live / play-along; volume?:0–1.5; pan?:-1–1
+**Fields:** channel plus volume?:0–1.5/pan?:-1–1 OR channels:{channel:{volume?,pan?}}; transition_seconds?:0–120, default 0; curve?:linear / smoothstep
 
-**Behavior:** Native host; available live; pan=0 centers
+**Behavior:** Native host; entire request validated before applying. Fades run in seconds even while stopped/paused; queued requires mixer-get/status or mixer_transition_completed confirmation. Updates replace fades on affected channels; omitted fields retain current values. Multi-channel writes share a fade start but are not sample-atomic.
+
+### mixer-cancel
+
+Cancel mixer fades at their current applied values.
+
+**Fields:** channels?:list of mixer channel names; omit for all
+
+**Behavior:** Keeps current volume/pan. Stop/panic, session import and shutdown cancel all fades; pause/resume does not.
 
 ### play-along
 
@@ -307,7 +331,23 @@ Enable/configure the sixth direct-play voice.
 
 **Fields:** enabled:boolean; input?:exact name; chord_channel?:1–16; velocity_limit?:1–127
 
-**Behavior:** Native host; plays while transport runs, including alongside loops/drums
+**Behavior:** Native host; plays whenever enabled, including while stopped or paused. Stop/panic release held notes and pedals; fresh keys still play.
+
+### key-monitor
+
+Enable/disable the read-only record of Orchid key presses and voicing-dial clicks.
+
+**Fields:** enabled?:boolean; input:exact name when enabling; chord_channel?:1-16, default 3
+
+**Behavior:** Opens an input only; independent of note routes. Starts with --sound-input
+
+### key-events
+
+Read recorded key presses, releases and voicing-dial clicks after a cursor.
+
+**Fields:** after?: id, default 0
+
+**Behavior:** Read-only. press: t (time.monotonic), root, name, octave, notes, intervals, velocity, beat; release: held_s; voicing: value, delta. Compare names, not note numbers
 
 ### sound-follow
 
@@ -457,7 +497,7 @@ Use the returned `document` as input for later edits and `beat-save`. For a step
 
 - The Studio API covers its controls and musical effects. Browser navigation, cursor positions, visual rendering, local file saving and unsaved draft history are client operations with the equivalents above.
 - `layer-editor` opens the Pistil plugin. Individual controls inside the vendor plugin are not Studio API parameters; use Computer Use for them. This audit does not claim full Pistil synthesis-parameter automation.
-- The API does not expose Orchid firmware/maintenance, physical key presses or arbitrary hardware MIDI output. Studio is the clock master.
+- The API does not expose Orchid firmware/maintenance, sending physical key presses or arbitrary hardware MIDI output. `key-events` only reports key presses Orchid sent. Studio is the clock master.
 - Six AU slots: loops 1–4, Perform 5, Play Along 6. Mixer keys use `live` for Perform and `play-along` for the direct voice.
 - Save the complete `loop-export.document` before restarting. Samples and supplied song MIDI live separately under ignored `local/`; exports do not bundle those files.
 - Set exact physical input and raw chord channel: this device was confirmed Performed 1, Bass 2, Chord 3. Never merge all streams.

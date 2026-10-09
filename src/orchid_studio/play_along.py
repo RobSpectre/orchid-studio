@@ -27,8 +27,9 @@ class DirectVoice:
 
 
 class PlayAlong:
-    def __init__(self,send,report,active):
-        self.send,self.report,self.active=send,report,active
+    def __init__(self,send,report):
+        self.send,self.report=send,report
+        self.voice_lock=threading.RLock();self.voice=None
         self.stop_event=threading.Event();self.worker=None
         self.state={'enabled':False,'input':None,'chord_channel':3,'velocity_limit':80,'status':'off','slot':6}
 
@@ -58,18 +59,23 @@ class PlayAlong:
         if self.worker:self.worker.join();self.worker=None
         self.state={**self.state,'enabled':False,'status':'off'}
 
+    def panic(self):
+        """Release held notes/pedals without disabling incoming keys."""
+        with self.voice_lock:
+            if self.voice:self.voice.panic()
+
     def run(self,source):
         voice=DirectVoice(self.send,self.state['chord_channel'],self.state['velocity_limit'])
-        was_active=False;next_check=time.monotonic()+1
+        with self.voice_lock:self.voice=voice
+        next_check=time.monotonic()+1
         try:
             while not self.stop_event.is_set():
-                active=self.active()
-                if was_active and not active:voice.panic()
-                was_active=active
                 for _ in range(256):
-                    packet=source.get_message()
-                    if packet is None:break
-                    if active:voice.receive(packet[0])
+                    with self.voice_lock:
+                        if self.stop_event.is_set():break
+                        packet=source.get_message()
+                        if packet is None:break
+                        voice.receive(packet[0])
                 if time.monotonic()>=next_check:
                     exact_port(source.get_ports(),self.state['input']);next_check=time.monotonic()+1
                 self.stop_event.wait(.002)
@@ -77,5 +83,8 @@ class PlayAlong:
             self.state={**self.state,'status':'error','error':str(exc)}
             self.report({'event':'play_along_error','error':str(exc)})
         finally:
-            try:voice.panic()
+            try:
+                with self.voice_lock:
+                    try:voice.panic()
+                    finally:self.voice=None
             finally:source.close_port();source.delete()

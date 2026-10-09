@@ -13,12 +13,14 @@ class PlayAlongTests(unittest.TestCase):
         self.assertIn([128,60,0],sent);self.assertIn([128,64,0],sent)
         self.assertIn([176,64,0],sent);self.assertFalse(voice.player.active)
 
-    def test_worker_releases_on_pause_and_drains_notes_while_paused(self):
+    def test_direct_keys_ignore_transport_but_stop_and_panic_release_notes(self):
         import queue
         import time
+        import tempfile
         from unittest.mock import Mock,patch
-        from orchid_studio.play_along import PlayAlong
-        packets=queue.Queue();sent=[];active=[True]
+        from orchid_studio.api import Controller
+        from orchid_studio.drum_library import DrumLibrary
+        packets=queue.Queue();sent=[]
         source=Mock();source.get_ports.return_value=['Orchid']
         def get_message():
             try:return packets.get_nowait(),0
@@ -28,18 +30,49 @@ class PlayAlongTests(unittest.TestCase):
             deadline=time.monotonic()+1
             while not predicate() and time.monotonic()<deadline:time.sleep(.002)
             self.assertTrue(predicate())
-        monitor=PlayAlong(sent.append,lambda e:None,lambda:active[0])
-        with patch('orchid_studio.play_along.backend') as backend:
+        with tempfile.TemporaryDirectory() as directory, patch('orchid_studio.play_along.backend') as backend:
             backend.return_value.MidiIn.return_value=source
-            monitor.configure(True,'Orchid',3)
+            controller=Controller(lambda m:None,lambda e:None,drum_library=DrumLibrary(directory))
+            controller.sounds.healthy=Mock(return_value=True)
+            controller.sounds.send_layer=lambda slot,message:sent.append((slot,message))
+            controller.sounds.panic=Mock()
+            monitor=controller.play_along
+            def command(name,**kwargs):
+                result=controller.execute({'command':name,**kwargs})
+                self.assertEqual(result['status'],'ok',result)
+            def press(note):
+                packets.put([146,note,70]);until(lambda:(6,[144,note,70]) in sent)
+            command('play-along',enabled=True,input='Orchid',chord_channel=3)
             try:
-                packets.put([146,60,70]);until(lambda:[144,60,70] in sent)
-                active[0]=False;until(lambda:[128,60,0] in sent)
-                packets.put([146,64,70]);until(packets.empty)
-                self.assertNotIn([144,64,70],sent)
-            finally:monitor.stop()
+                self.assertFalse(controller.transport.playing)
+                press(60)  # Immediately after launch, before any transport starts.
+                controller.transport.worker=Mock()
+                controller.transport.worker.is_alive.return_value=True
+                controller.transport.timeline.reset(96)
+                press(62)
+                command('pause')
+                press(64)
+                self.assertNotIn((6,[128,60,0]),sent)  # Pause leaves held direct notes alone.
+                controller.sounds.panic.assert_not_called()
+                command('resume');press(65)
+                for action,note in (('stop',67),('panic',69)):
+                    packets.put([178,64,127]);packets.put([178,66,127])
+                    until(lambda:(6,[176,66,127]) in sent)
+                    held=set(monitor.voice.player.active)
+                    command(action)
+                    for _,pitch in held:self.assertIn((6,[128,pitch,0]),sent)
+                    for cc in (64,66):self.assertIn((6,[176,cc,0]),sent)
+                    self.assertFalse(monitor.voice.player.active)
+                    self.assertTrue(monitor.state['enabled'])
+                    self.assertFalse(controller.transport.playing)
+                    sent.clear();press(note)
+                command('play-along',enabled=False)
+                self.assertIn((6,[128,69,0]),sent)
+                self.assertFalse(monitor.state['enabled'])
+                self.assertIsNone(monitor.worker)
+            finally:controller.close()
         source.close_port.assert_called_once();source.delete.assert_called_once()
-        self.assertIn([176,64,0],sent)
+        self.assertIn((6,[176,64,0]),sent)
 
     def test_perform_and_direct_voice_have_independent_note_lifetimes(self):
         from orchid_studio.perform import PerformanceEngine

@@ -200,6 +200,8 @@ def serve(send, lines, report, drums=None, *, api_port=None, api_only=False, dru
             report(result)
         if sound_input is not None:
             report(controller.execute({"command": "sound-follow", "input": sound_input, "enabled": True}))
+            report(controller.execute({"command": "key-monitor", "input": sound_input, "chord_channel": chord_channel,
+                                       "enabled": True}))
             if pistil_host:report(controller.execute({"command":"play-along","input":sound_input,"chord_channel":chord_channel,"enabled":True}))
         if session is not None:
             from pathlib import Path

@@ -72,7 +72,8 @@ for fresh installation, package installation, backups and platform limits.
 ## Play and control
 
 - Four loop layers retain independent Pistil sounds; select a different sound per layer.
-- **Live Perform** generates phrases; **Play Along** plays raw keys directly.
+- **Live Perform** generates phrases; **Play Along** plays raw keys whenever enabled, even while stopped or paused.
+- The mixer API supports grouped volume/pan changes, timed crossfades and saved mix recall. See the [mixer recipes](skills/orchid-studio-control/references/mixer.md).
 - Global BPM controls all three sequencers. Optional output publishes 24-PPQN MIDI clock.
 - **Space** pauses/resumes the whole Studio while the page has focus, except text entry.
 - **Start on key**, below the loop layers, waits for a fresh raw Chord note.

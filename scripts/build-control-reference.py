@@ -19,7 +19,7 @@ ref+=['','Example: clone a saved beat, then add a kick without overwriting its s
 '## Boundaries and local state','',
 '- The Studio API covers its controls and musical effects. Browser navigation, cursor positions, visual rendering, local file saving and unsaved draft history are client operations with the equivalents above.',
 '- `layer-editor` opens the Pistil plugin. Individual controls inside the vendor plugin are not Studio API parameters; use Computer Use for them. This audit does not claim full Pistil synthesis-parameter automation.',
-'- The API does not expose Orchid firmware/maintenance, physical key presses or arbitrary hardware MIDI output. Studio is the clock master.',
+'- The API does not expose Orchid firmware/maintenance, sending physical key presses or arbitrary hardware MIDI output. `key-events` only reports key presses Orchid sent. Studio is the clock master.',
 '- Six AU slots: loops 1–4, Perform 5, Play Along 6. Mixer keys use `live` for Perform and `play-along` for the direct voice.',
 '- Save the complete `loop-export.document` before restarting. Samples and supplied song MIDI live separately under ignored `local/`; exports do not bundle those files.',
 '- Set exact physical input and raw chord channel: this device was confirmed Performed 1, Bass 2, Chord 3. Never merge all streams.',

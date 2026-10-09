@@ -699,3 +699,22 @@ not acoustic latency; user hearing confirmation remains separate.
 - This is a local relocation/install check, not a second-device listening test. Intel Mac
   audio and cross-version AU state compatibility still need destination hardware validation.
 - Public code is MIT licensed; third-party plugin/sample/song content is excluded.
+
+### Mixer API fades and DJ control — 2026-10-09
+
+- Extended `mixer-set` with validated multi-channel volume/pan changes and
+  0–120-second linear/smoothstep fades; added `mixer-get`, `mixer-cancel`,
+  `capabilities.mixer_schema`, progress and completion/error events.
+- Regression checks cover grouped interpolation, exact endpoints, retargeting,
+  UI-style overrides, cancellation, paused/stopped operation, drum-volume state,
+  host failure, session recall and worker shutdown. All 159 Python tests and both
+  browser tests passed. Repository and installed skill validators passed.
+- Restarted the stopped local service after saving its complete session. Verified
+  an actual grouped fade through the local API and native host: loop slots 1/2
+  gain and pan reached their requested endpoints; drum control state matched.
+  Restored all seven original mixer values and verified saved sound labels were
+  preserved. Play Along remained enabled with transport stopped.
+- This confirms API/native control behavior, not listening quality. Fades update
+  at control rate, use elapsed seconds independent of musical transport, and are
+  not sample-atomic, beat-quantized or equal-power crossfades. Session exports save
+  current applied values; unfinished fades are not replayed on import.

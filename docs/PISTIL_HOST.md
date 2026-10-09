@@ -123,10 +123,12 @@ older four/five-voice sessions; six-voice exports use `pistil-au-v3`.
 
 Play Along listens only to the configured raw Chord channel (confirmed 3 on this
 Orchid). It sends unpatterned notes and sustain/sostenuto to slot 6. It excludes
-the performed/bass streams, clock, program changes and SysEx. It runs while the
-Studio transport runs, alongside live Perform, loops or drums; pause/stop releases
-its notes and pedals. Press keys again after resuming. Disable its toggle or turn
-its mixer down when you want only the generated Perform voice. It is not recorded
+the performed/bass streams, clock, program changes and SysEx. Whenever enabled,
+it plays independently of transport, including immediately after launch and while
+stopped or paused. Pause/resume leaves held Play Along notes alone. Stop/panic
+releases its notes and pedals without disabling the route; fresh keys still play.
+Disable its toggle or turn its mixer down when you want only the generated
+Perform voice. It is not recorded
 into loop takes. Hardware Perform is bypassed by consuming raw Chord notes.
 
 Fresh Sound-dial reports update Play Along as well as the explicitly selected

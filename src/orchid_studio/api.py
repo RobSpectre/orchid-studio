@@ -15,6 +15,7 @@ from .perform import options, settings
 from .sequencer import demo_session, integer, number
 from .service import Transport
 from .control_reference import reference, UI_MAP, BEAT_EDITOR
+from .mixer import MixerAutomation, SCHEMA as MIXER_SCHEMA, parse_set as parse_mixer_set
 
 COMMANDS = ("status", "capabilities", "events", "perform-options", "perform-configure",
             "perform", "perform-update", "demo", "play", "drums", "beats-list",
@@ -22,7 +23,7 @@ COMMANDS = ("status", "capabilities", "events", "perform-options", "perform-conf
             "loop-configure", "loop-start", "loop-record", "loop-cancel", "loop-mute",
             "loop-step", "loop-clear", "loop-undo", "loop-export", "loop-import",
             "pistil-enable", "pistil-status", "layer-select", "layer-editor", "layer-preset",
-            "beat-get", "beat-save", "kits-list", "kits-import", "sample-upload", "sound-preview", "clock-configure", "drums-length", "tempo", "mixer-set", "pause", "resume", "play-along", "beat-edit", "sounds-list", "command-help", "key-start")
+            "beat-get", "beat-save", "kits-list", "kits-import", "sample-upload", "sound-preview", "clock-configure", "drums-length", "tempo", "mixer-set", "mixer-get", "mixer-cancel", "pause", "resume", "play-along", "beat-edit", "sounds-list", "command-help", "key-start", "key-monitor", "key-events", "clock")
 
 
 class Controller:
@@ -41,6 +42,7 @@ class Controller:
         self.sounds = SoundRouter(software_send)
         self.software_send = self.sounds.send_live
         self.sound_follower = None
+        self.key_monitor = None
         self.midi_connection = None
         from .drum_sequencer import StudioDrums
         from .drum_library import DrumLibrary
@@ -49,14 +51,14 @@ class Controller:
                                    StudioDrums(drums, self.library) if drums is not None else None)
         self.transport.looper.router = self.sounds
         from .play_along import PlayAlong
-        self.play_along = PlayAlong(lambda m:self.sounds.send_layer(6,m),self.report,
-            lambda:self.transport.playing and not self.transport.timeline.paused)
+        self.play_along = PlayAlong(lambda m:self.sounds.send_layer(6,m),self.report)
         self.transport.tempo_sink = self._send_tempo
         self.defaults = settings({})
         self.bank_path = validate_beat_bank(drum_bank) if drum_bank else None
         self.bank_requested = False
         self.selected_beat = None
         self.drum_state = {"playing_requested": False, "bpm": 96, "volume": .3, "pattern": None}
+        self.mixer = MixerAutomation(self.sounds.mix, self._apply_mix, self.report, self.lock)
 
     def report(self, value):
         if value.get("event") in ("completed", "stopped", "playback_error") and hasattr(self, "drum_state"):
@@ -80,9 +82,11 @@ class Controller:
                 "orchid_connection":connection,
                 "tempo":self.transport.timeline.snapshot(),
                 "mixer":copy.deepcopy(self.sounds.mix),
+                "mixer_automation":self.mixer.snapshot(),
                 "play_along":dict(self.play_along.state),
                 "midi_clock":self.transport.clock_output.snapshot(),
                 "sound_follow": dict(self.sound_follower.state) if self.sound_follower else {"enabled": False},
+                "key_monitor": dict(self.key_monitor.state) if self.key_monitor else {"enabled": False},
                 "performance": {"input": live.input_name, "chord_channel": live.chord_channel,
                                 "output_channel": live.output_channel, "settings": {**live.config,"bpm":self.transport.timeline.target_bpm},
                                 "pending_updates": live.updates.qsize()} if live else None,
@@ -109,6 +113,13 @@ class Controller:
 
     def _send_tempo(self, bpm):
         if self.sounds.healthy():self.sounds.host.call('tempo',bpm=bpm,wait=False)
+
+    def _apply_mix(self, channel, values):
+        if not self.sounds.healthy():raise RuntimeError('native mixer audio is unavailable')
+        if channel == 'drums' and 'volume' in values:
+            self._drums().command('volume', values['volume'])
+            self.drum_state['volume'] = values['volume']
+        self.sounds.set_mix(channel, values)
 
     def _set_tempo(self, value, transition_seconds=2):
         bpm=number(value,30,300,'bpm')
@@ -185,12 +196,14 @@ class Controller:
         if command == 'drums-length':
             result=self._drums().set_length(request.get('bars'),self.selected_beat)
             return {**result,'sequencer':self._drums().snapshot()}
+        if command == 'clock':  # read-only and cheap: for clients timing physical playing against the beat
+            return {'status':'ok','clock':transport.timeline.snapshot()}
         if command == 'tempo':
             self._set_tempo(request.get('bpm'),request.get('transition_seconds',2))
             return {'status':'ok','tempo':transport.timeline.snapshot()}
         if command in ('pause','resume'):
             transport.pause(command=='pause')
-            if command=='pause':self.sounds.panic()
+            # Each transport worker releases its own voices; Play Along stays live.
             return {'status':'ok','tempo':transport.timeline.snapshot()}
         if command == 'play-along':
             if not self.sounds.healthy():raise ValueError('enable native Pistil audio for play-along')
@@ -199,14 +212,17 @@ class Controller:
                 request.get('chord_channel',self.play_along.state['chord_channel']),
                 request.get('velocity_limit',self.play_along.state['velocity_limit']))
             return {'status':'ok','play_along':dict(self.play_along.state)}
+        if command == 'mixer-get':
+            return {'status':'ok','mixer':copy.deepcopy(self.sounds.mix),'mixer_automation':self.mixer.snapshot()}
+        if command == 'mixer-cancel':
+            cancelled = self.mixer.cancel(request.get('channels'))
+            return {'status':'ok','cancelled':cancelled,'mixer':copy.deepcopy(self.sounds.mix),'mixer_automation':self.mixer.snapshot()}
         if command == 'mixer-set':
             if not self.sounds.healthy():raise ValueError('enable native audio for independent mixer controls')
-            target=request.get('channel');values={k:request[k] for k in ('volume','pan') if k in request}
-            if not values:raise ValueError('supply volume or pan')
-            self.sounds.set_mix(target,values)
-            if target=='drums' and 'volume' in values:
-                self._drums().command('volume',values['volume']);self.drum_state['volume']=values['volume']
-            return {'status':'ok','mixer':copy.deepcopy(self.sounds.mix)}
+            changes, seconds, curve = parse_mixer_set(request)
+            if 'volume' in changes.get('drums', {}):self._drums()
+            self.mixer.set(changes, seconds, curve)
+            return {'status':'queued' if seconds else 'ok','mixer':copy.deepcopy(self.sounds.mix),'mixer_automation':self.mixer.snapshot()}
         if command == "clock-configure":
             if transport.playing:raise ValueError("stop playback before changing MIDI clock output")
             return {"status":"ok", "midi_clock":transport.clock_output.configure(request.get("enabled"),request.get("offset_ms",40))}
@@ -215,6 +231,7 @@ class Controller:
         if command in ("capabilities", "perform-options"):
             return {"status": "ok", "api_version": 1, "commands": list(COMMANDS), "command_reference": reference(), "ui_map":copy.deepcopy(UI_MAP), "beat_editor":copy.deepcopy(BEAT_EDITOR), **options(),
                     "looper": {"slots": 4, "clear": "loop-clear: slot 1–4, or omit for all; available during playback except an active take; keeps sounds; stop then loop-undo to restore", "bars": [1, 16], "grids": [0, .25, .5, 1], "default_grid": .5, "count_in_beats": [0, 16], "step_notes": "MIDI pitches 0–127", "sound": "independent AU sounds when pistil-enable is active; otherwise shared standalone sound"},
+                    "mixer_schema":copy.deepcopy(MIXER_SCHEMA),
                     "beats": self.library.catalog(), "drum_actions": ["stop", "mute", "unmute",
                         "panic", "volume", "pattern",
                         "strip-volume", "strip-pan", "strip-mute-toggle", "strip-solo-toggle"]}
@@ -224,6 +241,7 @@ class Controller:
                     raise ValueError('stop playback before enabling independent sounds')
                 from .paths import host_path
                 path = host_path()
+                if not self.sounds.healthy():self.mixer.cancel()
                 changed=self.sounds.enable(path)
                 if not changed and transport.drums and transport.drums.loaded:
                     return {'status':'ok','instruments':self.sounds.snapshot()}
@@ -291,6 +309,7 @@ class Controller:
                 self._set_tempo(config['bpm'])
                 self.drum_state.update(playing_requested=drum_config is not None,bpm=config['bpm'])
                 if drum_config:
+                    self.mixer.cancel(['drums'])
                     self.drum_state.update(pattern=drum_config['pattern'],volume=drum_config.get('volume',.3))
                     self.sounds.mix['drums']['volume']=self.drum_state['volume']
                     self.selected_beat = request['drums'].get('beat')
@@ -325,6 +344,9 @@ class Controller:
                     from .drum_sequencer import StudioDrums
                     StudioDrums.validate_bars(drum_save.get('loop_bars'))
                 if 'instruments' in document:
+                    self.sounds.validate(document['instruments'])
+                self.mixer.cancel()
+                if 'instruments' in document:
                     self.sounds.restore(document['instruments'])
                 looper.restore(document)
                 self._set_tempo(document['performance']['bpm'])
@@ -350,6 +372,27 @@ class Controller:
                 return {"status": "ok", "events": [e for e in self.events if e["event_id"] > after],
                         "last_event_id": self.event_id,
                         "truncated": bool(self.events and after < self.events[0]["event_id"] - 1)}
+        if command == "key-monitor":
+            from .key_monitor import KeyMonitor
+            enabled = request.get("enabled", True)
+            if type(enabled) is not bool:
+                raise ValueError("enabled must be true or false")
+            timeline = transport.timeline
+            def beat_at(t):  # beats only mean something while the Studio timeline runs
+                return timeline.position(t) if timeline.running else None
+            monitor = (KeyMonitor(self.report, request.get("input"), request.get("chord_channel", 3), beat_at)
+                       if enabled else None)
+            if self.key_monitor:
+                self.key_monitor.stop()
+            self.key_monitor = monitor
+            if monitor:
+                monitor.start()
+            return {"status": "ok", "key_monitor": dict(monitor.state) if monitor else {"enabled": False}}
+        if command == "key-events":
+            after = integer(request.get("after", 0), 0, 2**63 - 1, "after")
+            if not self.key_monitor:
+                raise ValueError("key-monitor is not enabled")
+            return {"status": "ok", **self.key_monitor.events(after), "key_monitor": dict(self.key_monitor.state)}
         if command == "sound-follow":
             from .sound_follow import SoundFollower
             enabled = request.get("enabled", True)
@@ -393,6 +436,7 @@ class Controller:
             self.drum_state["playing_requested"] = resolved["drums"] is not None
             self.drum_state["bpm"] = tempo
             if resolved["drums"]:
+                self.mixer.cancel(['drums'])
                 self.drum_state.update({k: resolved["drums"].get(k, .3) for k in ("pattern", "volume")})
                 self.selected_beat = original["drums"].get("beat")
                 self.sounds.mix["drums"]["volume"]=self.drum_state["volume"]
@@ -475,6 +519,7 @@ class Controller:
             self._audio_ready()
             transport.play_drums(bpm, {"pattern": beat["pattern"], "volume": volume})
             self._set_tempo(bpm)
+            self.mixer.cancel(['drums'])
             self.sounds.mix["drums"]["volume"]=volume
             self.selected_beat = beat["id"]
             self.drum_state.update(playing_requested=True, bpm=bpm, volume=volume, pattern=beat["pattern"])
@@ -495,6 +540,7 @@ class Controller:
                 self.drum_state["playing_requested"] = False
                 return {"status": "sent", "confirmed": False}
             command_message(action, request.get("value"), request.get("strip"))
+            if action=='volume':self.mixer.cancel(['drums'])
             result = drums.command(action, request.get("value"), request.get("strip"))
             if action=="volume":self.sounds.mix["drums"]["volume"]=request.get("value")
             if action in ("volume", "bpm", "pattern"):
@@ -507,8 +553,11 @@ class Controller:
                 self.bank_requested, self.selected_beat = False, None
             return result
         elif command in ("stop", "panic", "quit"):
+            self.mixer.cancel()
             (transport.panic if command in ("panic", "quit") else transport.stop)()
-            self.sounds.panic()
+            with self.play_along.voice_lock:
+                try:self.play_along.panic()
+                finally:self.sounds.panic()
             self.drum_state["playing_requested"] = False
             if command == "quit":
                 self.closed.set()
@@ -518,12 +567,16 @@ class Controller:
         return {"status": "ok", "command": command, "playing": transport.playing}
 
     def close(self):
+        self.mixer.close()
         with self.lock:
+            self.mixer.cancel()
             self.closed.set()
             if self.midi_connection:self.midi_connection.close()
             self.play_along.stop()
             if self.sound_follower:
                 self.sound_follower.stop()
+            if self.key_monitor:
+                self.key_monitor.stop()
             try:
                 self.transport.panic()
             finally:
