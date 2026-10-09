@@ -110,8 +110,8 @@ class KeyMonitor:
         for event in events:
             beat = self.beat_at(event["t"]) if self.beat_at else None
             self.last_id += 1
-            self.history.append({**event, "id": self.last_id, "t": round(event["t"], 6),
-                                 "beat": None if beat is None else round(beat, 4)})
+            rounded = {k: round(event[k], 6) for k in ("t", "press_t") if k in event}  # a release names its press exactly
+            self.history.append({**event, "id": self.last_id, **rounded, "beat": None if beat is None else round(beat, 4)})
             if event["type"] == "press":
                 self.state = {**self.state, "presses": self.state["presses"] + 1}
             elif event["type"] == "voicing":

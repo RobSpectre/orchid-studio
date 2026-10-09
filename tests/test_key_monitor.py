@@ -79,6 +79,7 @@ class KeyMonitorTests(unittest.TestCase):
         self.assertEqual((down["id"], down["name"], down["velocity"], down["beat"]), (1, "D", 81, 10.0))
         self.assertEqual((up["type"], up["held_s"]), ("release", 0.5))
         self.assertEqual(monitor.events(after=1)["events"], [up])
+        self.assertEqual(up["press_t"], down["t"])  # same rounding, so clients can match them exactly
         self.assertEqual((result["last_key_event_id"], result["now"], result["truncated"]), (2, 100.5, False))
         self.assertEqual(monitor.state["presses"], 1)
         self.assertEqual(reports[0]["event"], "key_monitor_ready")
