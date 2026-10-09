@@ -25,7 +25,7 @@ The same map is available from `command-help`; filter with `name`. This referenc
 | Drum draft undo / export / import | `beat-edit`, `beat-get`, `beat-save` | Keep undo_document per edit, pop client history to undo. Export returned document to JSON; import via beat-save. Unsaved browser drafts are private to that tab and are not remotely readable. |
 | Sample preview / upload / kit import | `sound-preview`, `sample-upload`, `kits-import`, `kits-list` | Read library IDs and licenses; no file chooser required. |
 | Loop/drum visualizers and diagnostics | `status`, `beat-get`, `events`, `pistil-status` | status.looper.layers[].notes plus position; drums.sequencer plus document; native meters. Rendering is client-side. |
-| MIDI input/channel / clock / Sound following | `perform`, `loop-start`, `play-along`, `clock-configure`, `sound-follow`, `key-monitor`, `key-events` | Exact input name; confirmed raw Chord channel 3; no hardware output. |
+| MIDI input/channel / clock / Sound following | `perform`, `loop-start`, `play-along`, `clock-configure`, `clock`, `sound-follow`, `key-monitor`, `key-events` | Exact input name; confirmed raw Chord channel 3; no hardware output. |
 
 ## Commands
 
@@ -44,6 +44,14 @@ Read transport, loops, sounds, routing, mixer and clock state.
 **Fields:** none
 
 **Behavior:** Read-only
+
+### clock
+
+Read the beat timeline: bpm, beat, running/paused and t (time.monotonic() of the reading).
+
+**Fields:** none
+
+**Behavior:** Read-only; the MIDI clock output (24 PPQN) follows this timeline. beat at time x is beat + (x - t) * bpm / 60 while running, outside a tempo transition
 
 ### capabilities
 

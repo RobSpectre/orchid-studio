@@ -143,6 +143,12 @@ read from the same clock. `beat` is Studio's timeline position at that instant, 
 null while the timeline is stopped. This opens a MIDI input only and sends nothing
 anywhere; it does not depend on any note route or Play Along.
 
+`{"command":"clock"}` reads the beat timeline on its own, cheaply: `bpm`, `beat`,
+`running`, `paused`, tempo-transition fields and `t`, the `time.monotonic()` the
+reading is for. While it runs, the beat at time `x` is `beat + (x - t) * bpm / 60`
+(outside a tempo transition). The virtual MIDI clock output follows this timeline, so
+a local client can land physical playing on Studio's beat without opening MIDI.
+
 ## Named Hydrogen beats
 
 Generate the bank once from an installed TR808EmulationKit; the generator refuses to

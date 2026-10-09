@@ -4,6 +4,7 @@
 ROWS = {
  'key-start':('Arm loaded loops to wake on a fresh raw-chord note.','enabled:boolean; input/chord_channel/settings/drums as loop-start when stopped','Starts armed at beat zero without count-in; paused loops resume at cursor. First note feeds Live Perform. Stop/panic disarm; enable again to rearm.'),
  'status':('Read transport, loops, sounds, routing, mixer and clock state.','none','Read-only'),
+ 'clock':('Read the beat timeline: bpm, beat, running/paused and t (time.monotonic() of the reading).','none','Read-only; the MIDI clock output (24 PPQN) follows this timeline. beat at time x is beat + (x - t) * bpm / 60 while running, outside a tempo transition'),
  'capabilities':('Discover commands, Perform settings and control map.','none','Read-only'),
  'command-help':('Read this command reference; omit name for all.','name?: command string','Read-only'),
  'sounds-list':('Map 100 Pistil slots and installed drum samples.','none','Read-only; factory descriptions are configuration-derived'),
@@ -74,7 +75,7 @@ UI_MAP = {
  'Drum draft undo / export / import':{'commands':['beat-edit','beat-get','beat-save'],'notes':'Keep undo_document per edit, pop client history to undo. Export returned document to JSON; import via beat-save. Unsaved browser drafts are private to that tab and are not remotely readable.'},
  'Sample preview / upload / kit import':{'commands':['sound-preview','sample-upload','kits-import','kits-list'],'notes':'Read library IDs and licenses; no file chooser required.'},
  'Loop/drum visualizers and diagnostics':{'commands':['status','beat-get','events','pistil-status'],'notes':'status.looper.layers[].notes plus position; drums.sequencer plus document; native meters. Rendering is client-side.'},
- 'MIDI input/channel / clock / Sound following':{'commands':['perform','loop-start','play-along','clock-configure','sound-follow','key-monitor','key-events'],'notes':'Exact input name; confirmed raw Chord channel 3; no hardware output.'},
+ 'MIDI input/channel / clock / Sound following':{'commands':['perform','loop-start','play-along','clock-configure','clock','sound-follow','key-monitor','key-events'],'notes':'Exact input name; confirmed raw Chord channel 3; no hardware output.'},
 }
 
 BEAT_EDITOR={

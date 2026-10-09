@@ -22,7 +22,7 @@ COMMANDS = ("status", "capabilities", "events", "perform-options", "perform-conf
             "loop-configure", "loop-start", "loop-record", "loop-cancel", "loop-mute",
             "loop-step", "loop-clear", "loop-undo", "loop-export", "loop-import",
             "pistil-enable", "pistil-status", "layer-select", "layer-editor", "layer-preset",
-            "beat-get", "beat-save", "kits-list", "kits-import", "sample-upload", "sound-preview", "clock-configure", "drums-length", "tempo", "mixer-set", "pause", "resume", "play-along", "beat-edit", "sounds-list", "command-help", "key-start", "key-monitor", "key-events")
+            "beat-get", "beat-save", "kits-list", "kits-import", "sample-upload", "sound-preview", "clock-configure", "drums-length", "tempo", "mixer-set", "pause", "resume", "play-along", "beat-edit", "sounds-list", "command-help", "key-start", "key-monitor", "key-events", "clock")
 
 
 class Controller:
@@ -187,6 +187,8 @@ class Controller:
         if command == 'drums-length':
             result=self._drums().set_length(request.get('bars'),self.selected_beat)
             return {**result,'sequencer':self._drums().snapshot()}
+        if command == 'clock':  # read-only and cheap: for clients timing physical playing against the beat
+            return {'status':'ok','clock':transport.timeline.snapshot()}
         if command == 'tempo':
             self._set_tempo(request.get('bpm'),request.get('transition_seconds',2))
             return {'status':'ok','tempo':transport.timeline.snapshot()}

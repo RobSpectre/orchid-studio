@@ -83,6 +83,17 @@ class SharedTempoTests(TestCase):
             self.assertEqual(t.snapshot(),before)
         finally:c.close()
 
+    def test_clock_reports_the_beat_at_a_monotonic_time_other_processes_share(self):
+        now=[50.];c=Controller(Mock(),Mock())
+        t=Timeline(clock=lambda:now[0]);c.transport.timeline=t
+        try:
+            stopped=c.execute({'command':'clock'})['clock']
+            self.assertEqual((stopped['running'],stopped['t']),(False,50.))
+            t.reset(120);now[0]=51.5
+            clock=c.execute({'command':'clock'})['clock']
+            self.assertEqual((clock['bpm'],clock['beat'],clock['t'],clock['running']),(120,3.,51.5,True))
+        finally:c.close()
+
     def test_api_global_tempo_updates_defaults_loops_drums_and_native_au(self):
         c=Controller(Mock(),Mock(),drums=Mock());c.sounds.host=host()
         try:

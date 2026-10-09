@@ -99,4 +99,5 @@ class Timeline:
                     'transition_seconds':self.ramp_seconds,
                     'transition_progress':min(1,elapsed/self.ramp_seconds) if self.ramp_seconds else 1,
                     'curve':'cubic-bezier(0.333333, 0, 0.666667, 1)',
-                    'beat':round(self.position(now),4), 'paused':self.paused, 'running':self.running}
+                    'beat':round(self.position(now),4), 'paused':self.paused, 'running':self.running,
+                    't':now}  # the time.monotonic() this reading is for: other local processes share that clock
