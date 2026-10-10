@@ -24,6 +24,11 @@ let drumMixer=AVAudioMixerNode()
 let audioActivity=ProcessInfo.processInfo.beginActivity(options:[.userInitiated,.latencyCritical],reason:"Orchid Studio live audio")
 var windows:[Int:NSWindow] = [:]
 var gains:[AVAudioMixerNode] = []
+// Each voice: Pistil -> delay -> reverb -> its gain. Both effects start bypassed: the sound is unchanged until set.
+var delays:[AVAudioUnitDelay] = []
+var reverbs:[AVAudioUnitReverb] = []
+let rooms:[String:AVAudioUnitReverbPreset] = ["small":.smallRoom,"medium":.mediumRoom,"large":.largeRoom,
+    "chamber":.mediumChamber,"hall":.mediumHall,"large-hall":.largeHall,"plate":.plate,"cathedral":.cathedral]
 var ready = false
 var outputEnabled = false
 var bpm:Double = 124
@@ -136,6 +141,19 @@ func handle(_ request:[String:Any]) {
                   let pan=request["pan"] as? Double,pan.isFinite,(-1...1).contains(pan) else {throw HostError(message:"invalid mixer values")}
             if request["target"] as? String == "drums" {drumMixer.pan=Float(pan)}
             else {gains[slot].outputVolume=Float(volume);gains[slot].pan=Float(pan)}
+        case "fx":
+            if let values=request["delay"] as? [String:Any] {
+                guard let mix=values["mix"] as? Double,mix.isFinite,(0...100).contains(mix),
+                      let time=values["time"] as? Double,time.isFinite,(0.01...2).contains(time),
+                      let feedback=values["feedback"] as? Double,feedback.isFinite,(0...95).contains(feedback) else {throw HostError(message:"invalid delay")}
+                delays[slot].delayTime=time;delays[slot].feedback=Float(feedback)
+                delays[slot].wetDryMix=Float(mix);delays[slot].bypass = mix==0
+            }
+            if let values=request["reverb"] as? [String:Any] {
+                guard let mix=values["mix"] as? Double,mix.isFinite,(0...100).contains(mix),
+                      let room=values["room"] as? String,let preset=rooms[room] else {throw HostError(message:"invalid reverb")}
+                reverbs[slot].loadFactoryPreset(preset);reverbs[slot].wetDryMix=Float(mix);reverbs[slot].bypass = mix==0
+            }
         case "drum-load":
             guard let specs=request["sounds"] as? [[String:Any]] else {throw HostError(message:"sounds array required")}
             try drumSampler.load(specs)
@@ -199,7 +217,12 @@ func loadNext() {
             units.append(instrument)
             engine.attach(instrument)
             let mixer=AVAudioMixerNode();engine.attach(mixer);gains.append(mixer)
-            engine.connect(instrument,to:mixer,format:nil)
+            let delay=AVAudioUnitDelay();delay.wetDryMix=0;delay.bypass=true;engine.attach(delay);delays.append(delay)
+            let reverb=AVAudioUnitReverb();reverb.loadFactoryPreset(.mediumHall);reverb.wetDryMix=0;reverb.bypass=true
+            engine.attach(reverb);reverbs.append(reverb)
+            engine.connect(instrument,to:delay,format:nil)
+            engine.connect(delay,to:reverb,format:nil)
+            engine.connect(reverb,to:mixer,format:nil)
             engine.connect(mixer,to:engine.mainMixerNode,format:nil)
             instrument.auAudioUnit.musicalContextBlock = { tempo, signatureNumerator, signatureDenominator, beat, sampleOffset, downbeat in
                 tempo?.pointee=bpm;signatureNumerator?.pointee=4;signatureDenominator?.pointee=4

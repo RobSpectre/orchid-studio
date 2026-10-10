@@ -161,6 +161,7 @@ class Looper:
         self.layers = [self.empty(i) for i in range(4)]
         self.undo_layers = None
         self.take = None
+        self.pending_compose = None  # a composition waiting for the next loop boundary (loop-compose)
         self.beat = 0.
         self.held = {}
         self.error = None
@@ -235,6 +236,47 @@ class Looper:
         if msg[0] & 0xF0 == 0x90 and msg[2]:
             t['active'][pitch] = (max(0,self.beat-t['start']),msg[2])
 
+    def _compose(self, request):
+        """Replace one layer with a whole composition: chords at beats, each {beat, duration, notes, velocity?}. While
+        the loops play it takes over at the next loop boundary, so a pass in progress plays on undisturbed (for
+        example a live take of the same music, which the composition then repeats exactly); stopped, at once.
+        Caller holds the lock."""
+        index = integer(request.get('slot'),1,4,'slot')-1
+        chords = request.get('chords')
+        if not isinstance(chords,list) or not 1 <= len(chords) <= 512:
+            raise ValueError('chords must list 1–512 chords')
+        entries = []
+        for chord in chords:
+            if not isinstance(chord,dict):
+                raise ValueError('each chord needs beat, duration and notes')
+            pitches = chord.get('notes')
+            if not isinstance(pitches,list) or not 1 <= len(pitches) <= 16:
+                raise ValueError('each chord needs 1–16 MIDI pitches')
+            beat = number(chord.get('beat'),0,self.length-.001,'beat')
+            duration = min(number(chord.get('duration',1),.125,64,'duration'), self.length-beat)  # held to the loop's end at most
+            velocity = integer(chord.get('velocity',80),1,127,'velocity')
+            entries += [{'beat':beat,'duration':duration,'note':integer(p,0,127,'note'),'velocity':velocity} for p in sorted(set(pitches))]
+        config = settings(request.get('settings',self.perform))
+        entries = quantize(entries,self.length,self.config['grid'])
+        if len(entries) > 2048:
+            raise ValueError('a layer supports at most 2048 chord notes')
+        if self.playing:
+            boundary = (math.floor(max(0,self.beat)/self.length)+1)*self.length
+            self.pending_compose = {'index':index,'chords':entries,'config':config,'at':boundary}
+            return {'slot':index+1,'applies_at_beat':boundary,'chord_notes':len(entries)}
+        self._commit(index,entries,config)
+        return {'slot':index+1,'applies_at_beat':None,'chord_notes':len(entries)}
+
+    def _land_compose(self):
+        """A waiting composition takes over its layer once the loop reaches its boundary. Caller holds the lock."""
+        compose = self.pending_compose
+        if compose and self.beat >= compose['at']:
+            self.pending_compose = None
+            if self.bus:
+                self.bus.release(compose['index'])
+            self._commit(compose['index'],compose['chords'],compose['config'])
+            self.report({'event':'loop_composed','slot':compose['index']+1,'beat':compose['at']})
+
     def _commit(self, index, chords, config):
         if len(chords) > 2048:
             raise ValueError('a layer supports at most 2048 chord notes')
@@ -268,6 +310,8 @@ class Looper:
                     if self.bus:self.bus.release(index)
                     self.layers[index]=self.empty(index)
                 return
+            if action == 'compose':
+                return self._compose(request)
             if self.playing:
                 raise ValueError('stop loops before step editing, undoing or importing; takes record live')
             if action == 'undo':
@@ -451,6 +495,7 @@ class Looper:
                             self._commit(take['slot'],quantize(take['notes'],self.length,self.config['grid']),take['settings'])
                         monitor.panic() # Held keys do not double the newly completed take.
                         self.report({'event':'loop_take_complete','slot':take['slot']+1,'empty':not bool(take['notes'])})
+                    self._land_compose()
                     if not self.take and self.live_config and any(monitor.config[k]!=v for k,v in self.live_config.items() if k!='bpm'):
                         monitor.update({**self.live_config,'bpm':self.perform['bpm']},now)
                     if isinstance(self.bus,LayerVoices):self.bus.monitor_slot=self.take['slot']+1 if self.take else 5
