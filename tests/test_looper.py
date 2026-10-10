@@ -146,3 +146,26 @@ class LoopTests(unittest.TestCase):
                 self.assertEqual(c.execute(req)['status'],'error',req)
             self.assertEqual(c.execute({'command':'loop-export'})['document'],doc)
         finally:c.close()
+
+
+class ComposeTests(unittest.TestCase):
+    def test_a_composition_replaces_a_layer_now_when_stopped_and_on_the_next_boundary_while_playing(self):
+        events=[];l=Looper(lambda m:None,events.append)
+        l.configure({'bars':4})
+        chords=[{'beat':0,'duration':4,'notes':[60,64,67],'velocity':70},{'beat':8,'duration':12,'notes':[57,60,64]}]
+        done=l.edit('compose',{'slot':2,'chords':chords})
+        self.assertIsNone(done['applies_at_beat'])
+        self.assertEqual(len(l.layers[1]['chords']),6)
+        self.assertEqual(max(c['beat']+c['duration'] for c in l.layers[1]['chords']),16)  # held to the loop's end at most
+        playing=Mock();playing.is_alive.return_value=True;l.worker=playing;l.beat=21.5  # second pass, beat 5.5
+        done=l.edit('compose',{'slot':2,'chords':[{'beat':0,'duration':2,'notes':[62]}]})
+        self.assertEqual(done['applies_at_beat'],32)  # the next loop boundary: the pass in progress plays on
+        self.assertEqual(len(l.layers[1]['chords']),6)
+        l.beat=31.9;l._land_compose();self.assertEqual(len(l.layers[1]['chords']),6)
+        l.beat=32.0;l._land_compose()
+        self.assertEqual([c['note'] for c in l.layers[1]['chords']],[62])
+        self.assertEqual(events[-1],{'event':'loop_composed','slot':2,'beat':32})
+        for bad in ({'slot':5,'chords':chords},{'slot':1,'chords':[]},{'slot':1,'chords':[{'beat':16,'notes':[60]}]},
+                    {'slot':1,'chords':[{'beat':0,'notes':[]}]}):
+            with self.assertRaises(ValueError):l.edit('compose',bad)
+

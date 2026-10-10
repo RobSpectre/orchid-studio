@@ -143,6 +143,19 @@ read from the same clock. `beat` is Studio's timeline position at that instant, 
 null while the timeline is stopped. This opens a MIDI input only and sends nothing
 anywhere; it does not depend on any note route or Play Along.
 
+`{"command":"fx","slot":5,"delay":{"mix":25,"beats":0.5,"feedback":40},"reverb":{"mix":30,"room":"cathedral"}}` sets
+one voice's effects in the native audio host (slot 5, the Live Perform voice, unless given). Each voice runs
+Pistil → delay → reverb. Both are off (mix 0, bypassed) until set, so nothing changes until asked. Updates are partial.
+`delay.time` is in seconds, or `delay.beats` at the current tempo. `reverb.room` is small, medium, large, chamber, hall,
+large-hall, plate or cathedral. `status.fx` reports every voice. Needs independent Pistil sounds (`pistil-enable`), and
+rebuild the host once (`orchid-studio build-host`) so it has the effects.
+
+`{"command":"loop-compose","slot":2,"chords":[{"beat":0,"duration":8,"notes":[48,52,55],"velocity":70}]}` replaces
+one loop layer with a whole composition (chords at beats, 1–512, each 1–16 MIDI pitches). While the loops play it
+takes over on the **next loop boundary** (`composed.applies_at_beat`; event `loop_composed`), so the pass in progress
+plays on. orchid-robot uses this to loop what its arms just played, each chord moved onto its written beat. Stopped, it applies at once.
+Optional `settings` are the layer's Perform settings, as for `loop-step`.
+
 `{"command":"clock"}` reads the beat timeline on its own, cheaply: `bpm`, `beat`,
 `running`, `paused`, tempo-transition fields and `t`, the `time.monotonic()` the
 reading is for. While it runs, the beat at time `x` is `beat + (x - t) * bpm / 60`

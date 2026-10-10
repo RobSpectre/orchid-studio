@@ -94,6 +94,22 @@ class SharedTempoTests(TestCase):
             self.assertEqual((clock['bpm'],clock['beat'],clock['t'],clock['running']),(120,3.,51.5,True))
         finally:c.close()
 
+    def test_fx_sets_one_voices_delay_and_reverb_with_beats_at_the_current_tempo(self):
+        c=Controller(Mock(),Mock())
+        try:
+            self.assertEqual(c.execute({'command':'fx','reverb':{'mix':30}})['status'],'error')  # no native host yet
+            c.sounds.host=host();c.transport.timeline.reset(120)
+            r=c.execute({'command':'fx','delay':{'mix':25,'beats':0.5,'feedback':40},'reverb':{'mix':30,'room':'cathedral'}})
+            self.assertEqual(r['status'],'ok')
+            self.assertEqual(r['fx']['delay'],{'mix':25,'time':0.25,'feedback':40})  # an eighth at 120 BPM
+            c.sounds.host.call.assert_called_with('fx',slot=5,delay={'mix':25,'time':0.25,'feedback':40},
+                                                  reverb={'mix':30,'room':'cathedral'})
+            c.execute({'command':'fx','reverb':{'mix':0}})  # partial: the delay stays; reverb off
+            self.assertEqual(c.execute({'command':'status'})['fx'][5],{'delay':{'mix':25,'time':0.25,'feedback':40},'reverb':{'mix':0,'room':'cathedral'}})
+            for bad in ({'reverb':{'room':'garage'}},{'delay':{'mix':120}},{'delay':{'speed':1}},{},{'slot':7,'reverb':{'mix':1}}):
+                self.assertEqual(c.execute({'command':'fx',**bad})['status'],'error')
+        finally:c.close()
+
     def test_api_global_tempo_updates_defaults_loops_drums_and_native_au(self):
         c=Controller(Mock(),Mock(),drums=Mock());c.sounds.host=host()
         try:

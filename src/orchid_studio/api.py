@@ -21,9 +21,13 @@ COMMANDS = ("status", "capabilities", "events", "perform-options", "perform-conf
             "perform", "perform-update", "demo", "play", "drums", "beats-list",
             "beats-load", "beats-select", "beats-play", "sound-follow", "stop", "panic", "quit",
             "loop-configure", "loop-start", "loop-record", "loop-cancel", "loop-mute",
-            "loop-step", "loop-clear", "loop-undo", "loop-export", "loop-import",
+            "loop-step", "loop-clear", "loop-undo", "loop-export", "loop-import", "loop-compose",
             "pistil-enable", "pistil-status", "layer-select", "layer-editor", "layer-preset",
-            "beat-get", "beat-save", "kits-list", "kits-import", "sample-upload", "sound-preview", "clock-configure", "drums-length", "tempo", "mixer-set", "mixer-get", "mixer-cancel", "pause", "resume", "play-along", "beat-edit", "sounds-list", "command-help", "key-start", "key-monitor", "key-events", "clock")
+            "beat-get", "beat-save", "kits-list", "kits-import", "sample-upload", "sound-preview", "clock-configure", "drums-length", "tempo", "mixer-set", "mixer-get", "mixer-cancel", "pause", "resume", "play-along", "beat-edit", "sounds-list", "command-help", "key-start", "key-monitor", "key-events", "clock", "fx")
+
+
+FX_OFF = {"delay": {"mix": 0.0, "time": 0.375, "feedback": 30.0}, "reverb": {"mix": 0.0, "room": "hall"}}
+FX_ROOMS = ("small", "medium", "large", "chamber", "hall", "large-hall", "plate", "cathedral")
 
 
 class Controller:
@@ -58,6 +62,8 @@ class Controller:
         self.bank_requested = False
         self.selected_beat = None
         self.drum_state = {"playing_requested": False, "bpm": 96, "volume": .3, "pattern": None}
+        # Each voice's delay and reverb in the native host (off until set): slot -> {"delay": {...}, "reverb": {...}}
+        self.fx = {slot: {"delay": dict(FX_OFF["delay"]), "reverb": dict(FX_OFF["reverb"])} for slot in range(1, 7)}
         self.mixer = MixerAutomation(self.sounds.mix, self._apply_mix, self.report, self.lock)
 
     def report(self, value):
@@ -82,6 +88,7 @@ class Controller:
                 "orchid_connection":connection,
                 "tempo":self.transport.timeline.snapshot(),
                 "mixer":copy.deepcopy(self.sounds.mix),
+                "fx":copy.deepcopy(self.fx),
                 "mixer_automation":self.mixer.snapshot(),
                 "play_along":dict(self.play_along.state),
                 "midi_clock":self.transport.clock_output.snapshot(),
@@ -120,6 +127,36 @@ class Controller:
             self._drums().command('volume', values['volume'])
             self.drum_state['volume'] = values['volume']
         self.sounds.set_mix(channel, values)
+
+    def _fx(self, request):
+        """One voice's delay and reverb (slot 5, the Live Perform voice, unless given). mix 0-100 (0 is off); delay
+        time in seconds or in beats at the current tempo; feedback 0-95; reverb room a factory room. Partial updates."""
+        slot = integer(request.get('slot', 5), 1, 6, 'slot')
+        current = copy.deepcopy(self.fx[slot])
+        delay, reverb = request.get('delay'), request.get('reverb')
+        if delay is None and reverb is None:
+            raise ValueError('give delay and/or reverb')
+        if delay is not None:
+            if not isinstance(delay, dict) or set(delay) - {'mix', 'time', 'beats', 'feedback'}:
+                raise ValueError('delay takes mix, time (seconds) or beats, and feedback')
+            if 'mix' in delay: current['delay']['mix'] = number(delay['mix'], 0, 100, 'delay mix')
+            if 'feedback' in delay: current['delay']['feedback'] = number(delay['feedback'], 0, 95, 'delay feedback')
+            if 'time' in delay: current['delay']['time'] = number(delay['time'], .01, 2, 'delay time')
+            if 'beats' in delay:
+                current['delay']['time'] = number(number(delay['beats'], .0625, 8, 'delay beats') * 60 / self.transport.timeline.bpm,
+                                                  .01, 2, 'delay time (beats at this tempo)')
+        if reverb is not None:
+            if not isinstance(reverb, dict) or set(reverb) - {'mix', 'room'}:
+                raise ValueError('reverb takes mix and room')
+            if 'mix' in reverb: current['reverb']['mix'] = number(reverb['mix'], 0, 100, 'reverb mix')
+            if 'room' in reverb:
+                if reverb['room'] not in FX_ROOMS: raise ValueError('reverb room must be one of ' + ', '.join(FX_ROOMS))
+                current['reverb']['room'] = reverb['room']
+        if not self.sounds.healthy():
+            raise ValueError('enable independent Pistil sounds first: effects run in the native audio host')
+        self.sounds.host.call('fx', slot=slot, delay=current['delay'], reverb=current['reverb'])
+        self.fx[slot] = current
+        return {**current, 'slot': slot}
 
     def _set_tempo(self, value, transition_seconds=2):
         bpm=number(value,30,300,'bpm')
@@ -196,6 +233,8 @@ class Controller:
         if command == 'drums-length':
             result=self._drums().set_length(request.get('bars'),self.selected_beat)
             return {**result,'sequencer':self._drums().snapshot()}
+        if command == 'fx':
+            return {'status':'ok','fx':self._fx(request)}
         if command == 'clock':  # read-only and cheap: for clients timing physical playing against the beat
             return {'status':'ok','clock':transport.timeline.snapshot()}
         if command == 'tempo':
@@ -358,11 +397,13 @@ class Controller:
                     if transport.drums:
                         transport.drums.command('volume',self.drum_state['volume'])
                         transport.drums.set_length(drum_save.get('loop_bars'),self.selected_beat)
-            elif command in ('loop-cancel','loop-mute','loop-step','loop-clear','loop-undo'):
+            elif command in ('loop-cancel','loop-mute','loop-step','loop-clear','loop-undo','loop-compose'):
                 resolved = dict(request)
-                if command == 'loop-step':
+                if command in ('loop-step','loop-compose'):
                     resolved['settings'] = settings({**self.defaults, **request.get('settings', {})})
-                looper.edit(command[5:],resolved)
+                composed = looper.edit(command[5:],resolved)
+                if command == 'loop-compose':
+                    return {'status':'ok','composed':composed,'looper':looper.snapshot()}
             else:
                 raise ValueError('unknown loop command')
             return {'status':'ok','looper':looper.snapshot()}

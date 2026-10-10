@@ -11,7 +11,7 @@ The same map is available from `command-help`; filter with `name`. This referenc
 | Start on key | `key-start` | Arms loops and selected drums silently; fresh raw Chord note starts/resumes. Performed/Bass/CC and held-note repeats do not wake. Stop disarms. |
 | Transport and Space | `perform`, `loop-start`, `beats-play`, `play`, `pause`, `resume`, `stop`, `panic` | Read status. Space resumes/pauses the shared transport; when stopped it starts loaded loops with the configured drum accompaniment and live voice. It works from selectors, sliders and buttons; text entry keeps spaces. API callers choose which start explicitly. |
 | BPM dial / suggested beat BPM | `tempo`, `beats-list` | Suggested BPM is metadata; apply it explicitly with tempo. |
-| Mixer / center pan | `mixer-get`, `mixer-set`, `mixer-cancel` | Seven channels; volume=0 silences, pan=0 centers. Grouped changes and timed fades support crossfades, drops and pan sweeps; manual faders override fades on their channel. |
+| Mixer / center pan | `mixer-get`, `mixer-set`, `mixer-cancel`, `fx` | Seven channels; volume=0 silences, pan=0 centers. Grouped changes and timed fades support crossfades, drops and pan sweeps; manual faders override fades on their channel. |
 | Pistil sound / per-layer selectors / editor / destination | `sounds-list`, `layer-select`, `layer-preset`, `layer-editor`, `pistil-status` | Each loop card changes only its own slot and preserves notes; mixer destination picker passes an explicit slot. Factory map describes defaults, not edited current patches. |
 | Perform dial / bank / rhythm / fine controls | `perform-options`, `perform-configure`, `perform-update` | Bank is navigation; use its mode ID. Every fine control is in settings_schema. |
 | Play Along On/Off | `play-along` | Separate raw-chord voice, slot 6. |
@@ -44,6 +44,14 @@ Read transport, loops, sounds, routing, mixer and clock state.
 **Fields:** none
 
 **Behavior:** Read-only
+
+### fx
+
+Set one voice’s delay and reverb in the native audio host (off until set).
+
+**Fields:** slot?: 1–6, default 5 (Live Perform); delay?: {mix?:0–100, time?: seconds 0.01–2 OR beats?: 0.0625–8 at the current tempo, feedback?:0–95}; reverb?: {mix?:0–100, room?: small / medium / large / chamber / hall / large-hall / plate / cathedral}
+
+**Behavior:** Native host required; partial updates; mix 0 bypasses the effect. status.fx reports every voice
 
 ### clock
 
@@ -220,6 +228,14 @@ Mute/unmute one loop layer.
 **Fields:** slot:1–4; muted:boolean
 
 **Behavior:** Available live
+
+### loop-compose
+
+Replace one loop layer with a whole composition, at the next loop boundary while playing.
+
+**Fields:** slot:1–4; chords:[{beat:0+, duration?:beats (default 1, held to the loop end at most), notes:[0–127] (1–16), velocity?:1–127}] (1–512); settings?: Perform settings
+
+**Behavior:** Playing: takes over on the next loop boundary (composed.applies_at_beat), the pass in progress plays on; stopped: at once. Event loop_composed when it lands
 
 ### loop-step
 
