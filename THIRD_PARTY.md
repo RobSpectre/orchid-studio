@@ -6,9 +6,8 @@ no plugin, firmware, activation information or proprietary DSP is included here.
 The factory sound-name map is descriptive metadata, not a sound bank.
 
 Python MIDI integration uses python-rtmidi (installed separately). Native hosting
-uses Apple's system frameworks and development tools. The optional legacy
-Hydrogen adapter communicates with a separately installed application. Native
-Studio sample playback does not require Hydrogen to run or be installed.
+uses Apple's system frameworks and development tools. Studio can import drum kits
+in the Hydrogen kit format; it does not include or run the Hydrogen application.
 
 Sample sources and licenses are retained in each user's local sound manifest.
 Preparation scripts describe optional sources; they do not distribute audio.

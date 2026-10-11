@@ -15,7 +15,7 @@ means unknown/unavailable, not disconnected. A ready Sound follower can have a s
 port after USB changes. Connection does not imply transport is playing or audio is audible. For a specific command,
 use `{"command":"command-help","name":"loop-clear"}`. Without `name` it returns
 all command descriptions, fields, prerequisites, the UI map and drum-edit actions.
-Prefer this running API over opening competing MIDI/OSC clients.
+Prefer this running API over opening competing MIDI clients.
 
 ## Find the right control
 
@@ -131,7 +131,7 @@ works during playback/pause except an active take, and preserves sounds. Stop th
 
 Use `drums:{"engine":"studio","beat":"glass-house","volume":0.3}` on loop/Perform
 start for accompaniment. Omit drums to start without them. Native samples and Pistil
-share one audio engine; Hydrogen's independent transport is not used. `beats-select`
+share one audio engine. `beats-select`
 queues to the next bar; `drums-length` sets an even 2–64-bar runtime override or null.
 Source arrangements and playback length are separate; inspect `beat-get` fields.
 
@@ -170,8 +170,7 @@ The native host reuses the installed licensed AU and needs no DAW. Recover a fai
 host using `pistil-enable` while stopped; checkpoint restoration cannot recover
 unsaved patch edits made after capture. Preserve standalone/plugin edits and licenses.
 Do not install arbitrary runtimes, change Orchid firmware or replay archived captures.
-Linux Pistil support is unverified. Legacy Hydrogen OSC is optional and requires an
-explicit need; consult the checkout’s `docs/HYDROGEN.md`.
+Linux Pistil support is unverified.
 
 ## Install or transfer to another Mac
 

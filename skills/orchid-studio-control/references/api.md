@@ -1,5 +1,5 @@
 > Current drum API: see [Studio drum machine](drum-studio.md). Native macOS
-> playback uses `drums.engine: "studio"`; `hydrogen` remains a legacy alias.
+> playback uses `drums.engine: "studio"`.
 > Beats are editable documents, kit sounds can be mixed, and drum hits are
 > scheduled on the same timeline as loop notes. The native host plays both.
 
@@ -49,7 +49,7 @@ curl -s http://127.0.0.1:8765/command \
 
 The CLI accepts `request -` to read a JSON object from stdin; `--port` overrides
 8765. Python clients can call `orchid_studio.api_client.request(payload, port)`.
-No MIDI or OSC port is opened by the request client. An optional `id` is echoed in
+No MIDI port is opened by the request client. An optional `id` is echoed in
 the reply. HTTP validation errors return 400 and `status:error`; CLI errors return
 exit code 1. A failed request does not imply a stopped performance.
 
@@ -232,24 +232,17 @@ reading is for. While it runs, the beat at time `x` is `beat + (x - t) * bpm / 6
 (outside a tempo transition). The virtual MIDI clock output follows this timeline, so
 a local client can land physical playing on Studio's beat without opening MIDI.
 
-## Named Hydrogen beats
+## Factory electronic beats
 
-Generate the bank once from an installed TR808EmulationKit; the generator refuses to
-overwrite existing songs and does not copy samples:
-
-```sh
-.venv/bin/orchid-studio drums-song local/electronic-12x12.h2song --bank electronic --bpm 124 \
-  --kit-directory local/hydrogen-runtime/hydrogen-1.2.7/data/drumkits/TR808EmulationKit
-```
-
-The bank uses the installed **TR808EmulationKit**, whose metadata describes its
-sounds as synthesized from basic waveforms. It contains four drum-and-bass grooves
-(170–176 BPM), four house grooves (122–128 BPM), and four trance grooves (132–140
-BPM). No acoustic drum samples are referenced.
+The original factory bank is twelve arrangements for the **TR808EmulationKit**
+(import it with `kits-import`; its metadata describes sounds synthesized from basic
+waveforms). It contains four drum-and-bass grooves (170–176 BPM), four house
+grooves (122–128 BPM), and four trance grooves (132–140 BPM). When the Circuitry
+pack is installed, its arrangements replace these defaults (see `beats-list`).
 
 Every arrangement is **12 bars in 4/4 = 48 quarter-note beats**, with a sparse
 opening, core groove, variation, lift/fill, drop and turnaround. All are original
-pattern data; the installed samples retain their original licensing.
+pattern data; the imported samples retain their original licensing.
 
 | Beat ID | Name | Genre | Suggested BPM |
 | --- | --- | --- | ---: |
@@ -272,47 +265,36 @@ pattern data; the installed samples retain their original licensing.
 {"command":"beats-select","beat":"glass-house"}
 {"command":"beats-play","beat":"glass-house","bpm":124,"volume":0.3}
 {"command":"stop"}
-{"command":"perform","input":"Orchid","chord_channel":3,"settings":{"bpm":124,"mode":"strum"},"drums":{"engine":"hydrogen","beat":"glass-house","volume":0.3}}
+{"command":"perform","input":"Orchid","chord_channel":3,"settings":{"bpm":124,"mode":"strum"},"drums":{"engine":"studio","beat":"glass-house","volume":0.3}}
 {"command":"beats-select","beat":"prism-lift"}
 ```
 
-`beats-load` uses the configured path or an explicit `path`, checks the ordered
-catalog and 12-bar sizes, and requires playback stopped. It sends OPEN_SONG;
-verify Hydrogen's loaded song before playback. A sent load is not an acknowledgment.
-Selecting a name requires a bank-load request in the current service. If you
-change songs directly in Hydrogen, reload the bank before using named selectors.
+Drums need the native audio host (`serve --pistil-host`, or `pistil-enable`),
+which loads the sound rack. `beats-load` reloads that rack and requires playback
+stopped. Selecting a name requires a loaded rack in the current service.
 
-`beats-select` sends a pattern selection without changing tempo. Hydrogen's
-selected-only-next-pattern action can wait until the full 12-bar boundary while
-playing. For immediate selection, stop and restart the desired beat. `beats-play`
-is drums-only; for coordinated live playback use `perform` with `drums.beat`.
-Named beats also work in the API `play` request's `session.drums` object. Standalone
-`play FILE` still uses numeric `drums.pattern` and requires the correct song loaded.
-Never combine `drums.beat` and `drums.pattern`.
-
-The Hydrogen 1.2.7 editor's pattern-size spinner caps its display at four bars,
-though its song loader and audio engine retain/render these longer patterns. The
-bank stores 2304 ticks (48 PPQN × 48 beats) per pattern, verified by full-bank WAV
-export. Do not resize these patterns using that spinner; regenerate through Studio
-if their length is changed. The Studio catalog displays the full 12 bars.
+`beats-select` changes the beat without changing tempo; while playing, the switch
+waits for the next bar. `beats-play` is drums-only; for coordinated live playback
+use `perform` with `drums.beat`. Named beats also work in the API `play` request's
+`session.drums` object. Standalone `play FILE` has no native audio host, so a
+session with `drums` plays only through the API. Never combine `drums.beat` and
+`drums.pattern`.
 
 ## Transport, mixer and evidence
 
 `demo` and `play` retain the version-1 clip API, with optional `bpm`, `transpose`
-and `repeats`. `drums` retains the existing mixer, pattern, kit and transport
-commands described in [HYDROGEN.md](https://github.com/RobSpectre/orchid-studio/blob/main/docs/HYDROGEN.md). `stop` stops managed MIDI and
-Hydrogen; `panic` also releases notes/pedals on all software channels and mutes
-Hydrogen tails. `quit` cleans up and closes API-only service operation.
+and `repeats`. `drums` takes `action` `stop`, `mute`, `unmute`, `panic`, `volume`
+(0–1.5), `pattern` (catalog index) or `bpm`; prefer `mixer-set` for drum volume.
+`stop` stops managed MIDI and drums; `panic` also releases notes/pedals on all
+software channels and silences drum tails. `quit` cleans up and closes API-only
+service operation.
 
-Hydrogen state fields are **requested** state, not a live engine mirror.
-`sent`/`confirmed:false` establishes transmission only. `drums` action `feedback`
-returns observed OSC messages, not a per-request acknowledgment. Audio requires
-listener confirmation. A direct Hydrogen UI change can invalidate requested state.
+`status.drums` fields are **requested** state. Audio requires listener
+confirmation; `pistil-status.host.drums` reports what the sampler rendered.
 
-Studio and Hydrogen currently use separate clocks with common BPM and coordinated
-start/stop. Live BPM changes propagate to Hydrogen when `perform` was started with
-`drums`; phase-locked synchronization remains unimplemented. Pistil patch editing,
-live overdub and independent multiple synth instances remain separate work.
+Native drums play from Studio's beat timeline in the same audio engine as the loop
+layers, so tempo changes reach both. Pistil patch editing, live overdub and
+independent multiple synth instances remain separate work.
 
 ## Loop sequencer
 
@@ -326,7 +308,7 @@ taps last at least one grid step, and held notes close at the loop boundary.
 
 ```json
 {"command":"loop-configure","settings":{"bars":4,"grid":0.5,"count_in":4}}
-{"command":"loop-start","input":"Orchid","chord_channel":3,"output_channel":1,"slot":1,"settings":{"bpm":124,"mode":"arp"},"drums":{"engine":"hydrogen","beat":"glass-house","volume":0.3}}
+{"command":"loop-start","input":"Orchid","chord_channel":3,"output_channel":1,"slot":1,"settings":{"bpm":124,"mode":"arp"},"drums":{"engine":"studio","beat":"glass-house","volume":0.3}}
 {"command":"loop-record","slot":2,"settings":{"mode":"strum"}}
 {"command":"loop-cancel"}
 {"command":"loop-mute","slot":1,"muted":true}
