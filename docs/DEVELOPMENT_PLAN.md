@@ -1,3 +1,5 @@
+> Status (2026-10-10): historical plan. Looping with live takes and loop-compose, independent Pistil sounds and native drums are implemented (see [API.md](API.md), [PISTIL_HOST.md](PISTIL_HOST.md), [DRUM_STUDIO.md](DRUM_STUDIO.md)); Linux validation (item 6) remains open.
+
 # Current drum architecture — 2026-10-07
 
 User chose native sample playback inside Studio after a shared Python timeline
