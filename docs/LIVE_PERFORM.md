@@ -96,6 +96,8 @@ sorted held chord, so changing chord size changes pitches without changing rhyth
 | `pattern` | `pulse` | Bank ID above. |
 | `velocity_limit` | 80 | 1–127; cap, preserving quieter input velocities. |
 | `chord_window_ms` | 8 | 0–50; wait after chord mutations to group incoming packets. |
+| `octave` | null | 0–8 or null; move each held chord by whole octaves so its lowest note is in this octave (C4 = 60). |
+| `velocity` | null | 1–127 or null; every note at this velocity instead of the key's (`velocity_limit` still caps it). |
 
 Tempo-only changes preserve accumulated beat position, held voices and pending
 beat-based sweep timing. Most other musical setting changes retrigger/rejoin as

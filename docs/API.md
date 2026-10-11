@@ -70,9 +70,12 @@ of settings while running. Route changes require `perform` again.
 {"command":"perform-update","settings":{"mode":"slop","slop":0.7,"seed":12,"chord_window_ms":8}}
 ```
 
-All 11 settings are listed by `capabilities.settings_schema`: `bpm`, `mode`,
+All 13 settings are listed by `capabilities.settings_schema`: `bpm`, `mode`,
 `pattern`, `step_beats`, `gate`, `velocity_limit`, `spread_beats`, `harp_octaves`,
-`slop`, `seed`, `chord_window_ms`. Their musical meaning and ranges are in
+`slop`, `seed`, `chord_window_ms`, `octave`, `velocity`. `octave` and `velocity` (both
+default `null`, off) make the voice sound in a register and at a level of its own, whatever
+Orchid sends: set them on the live voice so a robot's pass sounds like the loop layer it is
+recording into. Their musical meaning and ranges are in
 [LIVE_PERFORM.md](LIVE_PERFORM.md). These are original software implementations.
 
 Live updates return `queued`. Poll `status` for applied values, or

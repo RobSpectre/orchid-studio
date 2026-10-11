@@ -11,7 +11,7 @@ const $=id=>document.getElementById(id);
 const labels={bpm:'Studio BPM',mode:'Perform mode',step_beats:'Step length · beats',gate:'Note gate',velocity_limit:'Velocity limit',spread_beats:'Sweep spread · beats',harp_octaves:'Harp octaves',slop:'Slop amount',seed:'Slop seed',pattern:'Perform rhythm',chord_window_ms:'Chord grouping · ms'};
 async function command(data){const response=await fetch('/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await response.json();if(result.status==='error')throw Error(result.error);return result}
 function message(text,error=false){$('message').textContent=text;$('message').className=error?'error':''}
-function values(){const result={};for(const [key,schema] of Object.entries(cap.settings_schema.properties)){const v=$('setting-'+key).value;result[key]=schema.type==='string'?v:Number(v)}return result}
+function values(){const result={};for(const [key,schema] of Object.entries(cap.settings_schema.properties)){if(!$('setting-'+key))continue;const v=$('setting-'+key).value;result[key]=schema.type==='string'?v:Number(v)}return result}
 function fill(config){for(const [key,value] of Object.entries(config))if(key!=='bpm'&&$('setting-'+key)&&document.activeElement!==$('setting-'+key))$('setting-'+key).value=value}
 function beatInfo(){const beat=cap.beats.find(b=>b.id===$('beats').value);$('beat-info').textContent=beat?`${beat.name} · ${beat.bars} bars · ${beat.genre} · ${beat.vibe||beat.feel} · suggested ${beat.suggested_bpm} BPM${beat.energy?' · '+beat.energy+' energy / '+beat.density+' density':''}${beat.best_for?' · Good for: '+beat.best_for:''}`:''}
 function showLoops(){

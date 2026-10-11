@@ -24,6 +24,19 @@ class PerformTests(unittest.TestCase):
         e.advance(.25)
         self.assertEqual(sent, [[144, 60, 80], [128, 60, 0], [144, 64, 80]])
 
+    def test_octave_and_velocity_place_the_chord_whatever_was_pressed(self):
+        e, sent = self.engine(mode="off", octave=2, velocity=100, velocity_limit=127)
+        self.chord(e)  # C4 E4 G4, pressed at 96
+        e.advance(0)
+        self.assertEqual(sorted(sent), [[144, 36, 100], [144, 40, 100], [144, 43, 100]])
+        e2, sent2 = self.engine(mode="off", octave=5)
+        for pitch in (26, 29, 33):  # pressed two octaves below middle C: still lands in octave 5
+            e2.receive([0x92, pitch, 50])
+        e2.advance(0)
+        self.assertEqual(sorted(sent2), [[144, 74, 50], [144, 77, 50], [144, 81, 50]])
+        with self.assertRaises(ValueError):
+            settings({"octave": 9})
+
     def test_two_octaves_and_pitch_range(self):
         e, sent = self.engine(mode="arp2")
         self.chord(e)

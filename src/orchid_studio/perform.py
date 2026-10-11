@@ -27,7 +27,8 @@ PATTERNS = {
 }
 DEFAULTS = {"bpm": 96, "mode": "arp", "step_beats": .5, "gate": .75,
             "velocity_limit": 80, "spread_beats": .25, "harp_octaves": 3,
-            "slop": .35, "seed": 0, "pattern": "pulse", "chord_window_ms": 8}
+            "slop": .35, "seed": 0, "pattern": "pulse", "chord_window_ms": 8,
+            "octave": None, "velocity": None}
 
 
 def settings(values):
@@ -47,6 +48,10 @@ def settings(values):
     number(result["slop"], 0, 1, "slop")
     integer(result["seed"], 0, 2**32 - 1, "seed")
     number(result["chord_window_ms"], 0, 50, "chord_window_ms")
+    if result["octave"] is not None:
+        integer(result["octave"], 0, 8, "octave")
+    if result["velocity"] is not None:
+        integer(result["velocity"], 1, 127, "velocity")
     return result
 
 
@@ -60,7 +65,11 @@ def options():
     }
     schema = {key: {"type": kind, "minimum": low, "maximum": high,
                     "default": DEFAULTS[key]} for key, (kind, low, high) in fields.items()}
-    schema.update({"mode": {"type": "string", "enum": list(MODES), "default": "arp"},
+    schema.update({"octave": {"type": ["integer", "null"], "minimum": 0, "maximum": 8, "default": None,
+                              "description": "move each held chord by whole octaves so its lowest note is in this octave (C4 = 60)"},
+                   "velocity": {"type": ["integer", "null"], "minimum": 1, "maximum": 127, "default": None,
+                                "description": "play every note at this velocity instead of the key's (velocity_limit still caps it)"},
+                   "mode": {"type": "string", "enum": list(MODES), "default": "arp"},
                    "pattern": {"type": "string", "enum": list(PATTERNS), "default": "pulse"}})
     from .catalog import perform_map, PATTERN_DESCRIPTIONS
     return {"mode_map":perform_map(MODES,MELODIES),"pattern_descriptions":dict(PATTERN_DESCRIPTIONS),"modes": list(MODES), "patterns": list(PATTERNS), "defaults": dict(DEFAULTS),
@@ -117,16 +126,27 @@ class PerformanceEngine:
         self.player.send([0x90 | self.output_channel, pitch,
                           min(velocity, self.config["velocity_limit"])])
 
+    def sounding(self):
+        """The held notes as they sound: in the configured octave and at the configured velocity, when set."""
+        held = self.held
+        if self.config["octave"] is not None and held:
+            shift = 12 * (self.config["octave"] + 1 - min(held) // 12)
+            held = {p + shift: v for p, v in held.items() if 0 <= p + shift <= 127}
+        if self.config["velocity"] is not None:
+            held = {p: self.config["velocity"] for p in held}
+        return held
+
     def pitches(self):
         mode = self.config["mode"]
+        held = self.sounding()
         if mode in MELODIES:
-            if not self.held:return []
-            velocity=min(self.held.values())
-            return sorted({melodic_pitch(self.held,d,mode):velocity for _,d,_,_ in MELODIES[mode]["events"]}.items())
+            if not held:return []
+            velocity=min(held.values())
+            return sorted({melodic_pitch(held,d,mode):velocity for _,d,_,_ in MELODIES[mode]["events"]}.items())
         octaves = self.config["harp_octaves"] if mode == "harp" else 2 if mode in ("arp2", "strum2") else 1
-        result = dict(self.held)
+        result = dict(held)
         for octave in range(1, octaves):
-            for pitch, velocity in self.held.items():
+            for pitch, velocity in held.items():
                 if pitch + 12 * octave <= 127:
                     result.setdefault(pitch + 12 * octave, velocity)
         return sorted(result.items())
@@ -259,8 +279,10 @@ class PerformanceEngine:
         end=onset+duration*step*self.config['gate']
         if self.beat-onset>tolerance+1e-9 or end<=self.beat:return
         self._all_off()
-        velocity=max(1,round(min(min(self.held.values()),self.config['velocity_limit'])*accent))
-        self._on(melodic_pitch(self.held,degree,mode),velocity,end)
+        held=self.sounding()
+        if not held:return
+        velocity=max(1,round(min(min(held.values()),self.config['velocity_limit'])*accent))
+        self._on(melodic_pitch(held,degree,mode),velocity,end)
 
     def update(self, changes, now):
         config = settings({**self.config, **changes})
