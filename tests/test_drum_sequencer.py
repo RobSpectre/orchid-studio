@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import Mock
 import wave
 
-from orchid_studio.drum_library import DrumLibrary, validate
+from orchid_studio.drum_library import DrumLibrary
 from orchid_studio.drum_sequencer import StudioDrums
 from orchid_studio.sequencer import Player, Event
 

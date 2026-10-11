@@ -8,7 +8,7 @@ from unittest.mock import Mock
 
 from orchid_studio.api import Controller
 from orchid_studio.looper import LayerVoices
-from orchid_studio.pistil_host import SoundRouter, validate_states
+from orchid_studio.pistil_host import SoundRouter
 
 
 def state(value):

@@ -119,7 +119,6 @@ MELODIES = {
 
 
 from .song_modes import load_songs
-BUILTIN_MELODIES = dict(MELODIES)
 SONG_MODES, SONG_IMPORT_ERRORS = load_songs()
 MELODIES.update(SONG_MODES)
 

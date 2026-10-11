@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from orchid_studio.indie_beats import documents, sound_id
+from orchid_studio.indie_beats import documents
 from orchid_studio.beats import catalog
 from orchid_studio.drum_library import DrumLibrary, validate
 

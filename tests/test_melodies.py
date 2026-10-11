@@ -1,8 +1,11 @@
 import unittest
 from orchid_studio.perform import PerformanceEngine, options
-from orchid_studio.melodies import BUILTIN_MELODIES as MELODIES, MELODIES as ALL_MELODIES, melodic_pitch
+from orchid_studio.melodies import MELODIES as ALL_MELODIES, SONG_MODES, melodic_pitch
 from orchid_studio.looper import render
 from orchid_studio.timeline import Timeline
+
+# The composed modes; local song MIDI adds modes these craft checks do not cover.
+MELODIES = {mode: melody for mode, melody in ALL_MELODIES.items() if mode not in SONG_MODES}
 
 
 class MelodyTests(unittest.TestCase):

@@ -14,7 +14,6 @@ class Timeline:
         self.elapsed_at_anchor = 0.
         self.ramp_seconds = 0.
         self.running = self.paused = False
-        self.revision = 0
 
     def _elapsed(self, now):
         return self.elapsed_at_anchor + (max(0, now-self.anchor) if self.running and not self.paused else 0)
@@ -55,7 +54,6 @@ class Timeline:
             self.elapsed_at_anchor = self.ramp_seconds = 0.
             self.running = True
             self.paused = False
-            self.revision += 1
 
     def tempo(self, bpm, transition_seconds=2):
         value = number(bpm,20,300,'bpm')
@@ -80,7 +78,6 @@ class Timeline:
             self.elapsed_at_anchor = self._elapsed(now)
             self.anchor = now
             self.paused = paused
-            self.revision += 1
 
     def stop(self):
         with self.lock:

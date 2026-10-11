@@ -1,9 +1,6 @@
-import io
 import json
-from pathlib import Path
 import socket
 import tempfile
-import threading
 import time
 import unittest
 from unittest.mock import Mock, patch

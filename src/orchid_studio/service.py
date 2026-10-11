@@ -136,7 +136,6 @@ class Transport:
             try:
                 self.drums.start(bpm, config)
                 self.clock_output.begin()
-                origin=time.monotonic()
                 while not self.stop_requested.is_set():
                     if self.timeline.paused:
                         self.drums.client.command("stop");self.stop_requested.wait(.01);continue
