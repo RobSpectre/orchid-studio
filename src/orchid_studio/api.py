@@ -187,7 +187,7 @@ class Controller:
         if beat is None:
             raise ValueError("unknown beat; use beats-list")
         if not self.bank_requested:
-            raise ValueError("load the electronic bank with beats-load before selecting a named beat")
+            raise ValueError("load the drum sound rack with beats-load before selecting a named beat")
         return beat
 
     def _resolve_drums(self, value):

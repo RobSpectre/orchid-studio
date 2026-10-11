@@ -135,7 +135,7 @@ def main(argv=None):
     restore = commands.add_parser("restore", help="Restore a transfer bundle into a new data directory; never overwrite")
     restore.add_argument("archive", type=Path)
     restore.add_argument("--to", type=Path, required=True)
-    commands.add_parser("beats-list", help="List the 12 original electronic drum arrangements; send no MIDI")
+    commands.add_parser("beats-list", help="List the 12 factory electronic arrangements offline (Studio's whole library, both banks: request beats-list); send no MIDI")
     api_request = commands.add_parser("request", help="Send a JSON command to the running local HTTP API")
     api_request.add_argument("json", help="JSON object, or - to read stdin")
     api_request.add_argument("--port", type=int, default=8765)
