@@ -5,13 +5,11 @@ already behind the audio renderer can crash Pistil 1.0.2. Orchid Studio's native
 host can submit exactly that event. Silent isolated tests reproduced both the
 demo's exact Pistil fault location and its heap-corruption failure.
 
-This investigation did not change the running demo, its patches, audio routing,
-licensed installation, or production host binary. A host-owned render-buffer
-scheduler (`native/MIDIScheduler.swift`, reported as `render-buffer-v1`) now
-implements the repair direction below; its regression tests pass, but it has not
-yet run in the demo with Pistil. Diagnostic programs were separate processes;
-offline tests had no audio device output, and the real-time host probes
-remained muted throughout.
+The initial investigation did not change the running demo or production host.
+The subsequent repair has passed the installed-plugin regression tests and is
+now running in the demo account; deployment details appear below. Diagnostic
+programs were separate processes. Offline tests had no audio device output,
+and the real-time host probes remained muted throughout.
 
 ## Reports and account comparison
 
@@ -142,6 +140,56 @@ historical failure to this trigger, and production stability after repair,
 remain unverified. Pistil also needs defensive handling of late MIDI events;
 the host-side repair should prevent this unsafe input rather than relying on a
 vendor update.
+
+## Implemented repair and regression checks
+
+`native/MIDIScheduler.swift` now owns a bounded, preallocated deadline queue per
+voice. An AUv2 pre-render notification delivers MIDI through
+`MusicDeviceMIDIEvent` using only offsets from zero through `frameCount - 1`.
+Future events remain queued, equal-deadline order is stable, and overdue events
+use offset zero. This removes the stale-absolute-timestamp path entirely. The
+audio thread tries the queue lock without waiting; contention defers events to
+the next buffer, where the same late-event rule applies.
+
+Panic, restore, route recovery and shutdown cancel pending notes. Panic also
+sends sustain, sostenuto and voice-release controllers on all 16 channels from
+the pre-render callback. Recovery updates the instrument sample rate. Per-voice
+status now exposes delivered, late, cancelled and queued event counts, maximum
+lateness, delivery errors and panic state. The host identifies this implementation
+as `midi_scheduling: render-buffer-v1`.
+
+Verification on the installed Pistil 1.0.2:
+
+- `tests/native/PistilMIDISmoke.swift`: silent in-memory rendering at 44.1 and
+  48 kHz. The former one-sample-late crash case passed at both rates, as did
+  2,000 deliberately overdue note events per rate, future note-off retention,
+  cancellation and all-channel panic. No MIDI delivery errors occurred.
+- A muted six-voice production-host build delivered 2,400 events, including
+  at least 1,200 late events. Panic and restore each cancelled future note-ons
+  in every voice. The process exited cleanly.
+- All 173 automated tests passed. The HTTP test initially lacked sandbox
+  permission to bind localhost; its separate unrestricted rerun passed. The
+  native queue regression covers one-sample lateness, equal-time ordering,
+  strict buffer boundaries, cancellation, rate changes, capacity errors,
+  non-finite deadlines and extreme finite deadlines.
+
+The explicit Pistil smoke test requires the user's installed plugin and is not
+part of automatic test discovery. Compile it alongside `MIDIScheduler.swift`
+with the AppKit, AVFoundation and AudioToolbox frameworks, then run the result.
+It renders only to memory, without hardware MIDI or an audio output device.
+
+The tested host was installed and the demo account's audio subprocess restarted.
+The Python service and recorded loops were retained. All six decoded AU state
+dictionaries matched the pre-restart capture exactly. Notes, mixer values and
+effects settings were preserved; Studio's 88 BPM was reapplied. The prior crash
+had stopped Play Along's input worker, so its existing Orchid channel-3
+configuration was re-enabled and reported ready. The new host reported an active
+engine on MacBook Pro Speakers at 44.1 kHz, with no audio error.
+
+These checks validate the reproduced crash fix, not indefinite stability or
+listener-confirmed audio. The original uncertainty about the relative demo
+failure frequency remains. Private before/after sessions, original host backup,
+and test output are preserved under the evidence directory below.
 
 Private evidence and diagnostic sources are in
 `local/crash-investigation-2026-10-11/` (untracked). This directory contains only

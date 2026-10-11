@@ -1,7 +1,9 @@
 > The host now also renders local drum samples in the same audio engine. See
 > [Studio drum machine](drum-studio.md). Build includes `src/orchid_studio/native/DrumSampler.swift`.
-> Scheduled MIDI and drum hits use host-clock deadlines with 40 ms allowance;
-> native panic silences output while draining that horizon before releasing notes.
+> MIDI and drum hits use host-clock deadlines with 40 ms allowance. MIDI stays in
+> a bounded per-voice queue until Pistil's pre-render callback delivers it at an
+> offset inside the current buffer; late events use offset zero. Panic cancels
+> queued events and releases notes/pedals while output is briefly silenced.
 
 # Independent Pistil sounds on macOS
 
@@ -87,6 +89,13 @@ VST3 state. Linux Pistil compatibility remains unverified. Studio sends BPM to
 the AU host. Native drums, loops and software Perform use the shared Studio
 timeline. Each AU has its own volume/pan bus; drums have their own pan bus.
 Mixer values are saved with AU states. Four-state sessions remain importable.
+
+`pistil-status.host.midi_scheduling` is `render-buffer-v1` for the safe scheduler.
+Each layer's `midi` object reports queued/delivered/cancelled events, late-event
+count and maximum lateness, delivery errors, panic state and instrument sample
+rate. Late delivery is handled safely; these counters do not establish audible
+timing. See [the crash investigation](https://github.com/RobSpectre/orchid-studio/blob/main/docs/PISTIL_CRASH_INVESTIGATION.md) for the
+Pistil 1.0.2 regression and verification. No plugin binary modification is needed.
 
 Sources: [Apple AU instantiation](https://developer.apple.com/documentation/avfaudio/avaudiounit/instantiate(with:options:completionhandler:)),
 [Apple AU state](https://developer.apple.com/documentation/audiotoolbox/auaudiounit),

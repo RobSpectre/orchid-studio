@@ -16,8 +16,10 @@ sample attacks receive a 40 ms scheduling allowance on the host clock. The
 sample callback places attacks within its audio buffer. This is internal
 scheduling, not MIDI-clock synchronization with Orchid hardware. Python/IPC
 jitter and plugin latency still need real listening/measurement; do not infer
-heard audio from a render counter. Stop clears sample tails and drains scheduled
-MIDI while the output is silent before releasing all notes.
+heard audio from a render counter. Stop clears sample tails and cancels queued
+MIDI while the output is silent, releasing all notes and pedals. MIDI events are
+delivered in each Pistil instance's pre-render callback with a bounded offset;
+late events use the beginning of the current buffer.
 
 ## Make a beat
 
