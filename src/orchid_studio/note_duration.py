@@ -1,4 +1,5 @@
 """orchid-robot score duration notation; quarter notes are beats, bars are 4/4."""
+# A copy of orchid-robot's orchid_demo/music.py beats(), the source of truth: change that first, then this.
 from fractions import Fraction
 import math
 import re
