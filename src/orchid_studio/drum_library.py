@@ -254,14 +254,5 @@ class DrumLibrary:
         ET.ElementTree(kit).write(folder/'drumkit.xml')
         return self.import_kit(folder)
 
-    def ensure_stock(self):
-        if any(k['id']=='tr808emulationkit' for k in self.kits):return
-        candidates=[Path('/Applications/Hydrogen.app/Contents/Resources/data/drumkits/TR808EmulationKit'),
-                    Path('/usr/share/hydrogen/data/drumkits/TR808EmulationKit')]
-        for path in candidates:
-            if (path/'drumkit.xml').is_file():
-                self.import_kit(path);return
-        raise ValueError('import the TR808EmulationKit directory with kits-import first')
-
     def sound_list(self):
         return [{k:v for k,v in s.items() if k!='instrument'} for s in self.sounds.values()]
