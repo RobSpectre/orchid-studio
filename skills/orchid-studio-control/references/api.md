@@ -223,6 +223,7 @@ rebuild the host once (`orchid-studio build-host`) so it has the effects.
 one loop layer with a whole composition (chords at beats, 1–512, each 1–16 MIDI pitches). While the loops play it
 takes over on the **next loop boundary** (`composed.applies_at_beat`; event `loop_composed`), so the pass in progress
 plays on. orchid-robot uses this to loop what its arms just played, each chord moved onto its written beat. Stopped, it applies at once.
+Each layer keeps its own pending composition; `status.looper.pending_composes` lists the slots waiting.
 Optional `settings` are the layer's Perform settings, as for `loop-step`.
 
 `{"command":"clock"}` reads the beat timeline on its own, cheaply: `bpm`, `beat`,

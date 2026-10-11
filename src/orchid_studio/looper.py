@@ -161,7 +161,7 @@ class Looper:
         self.layers = [self.empty(i) for i in range(4)]
         self.undo_layers = None
         self.take = None
-        self.pending_compose = None  # a composition waiting for the next loop boundary (loop-compose)
+        self.pending_composes = {}  # layer index -> its composition waiting for the next loop boundary (loop-compose)
         self.beat = 0.
         self.held = {}
         self.error = None
@@ -194,6 +194,7 @@ class Looper:
                     'key_start_timing':copy.deepcopy(self.key_start_timing),
                     'start_on_key':self.start_on_key, 'waiting_for_key':bool(self.start_on_key and self.timeline and self.timeline.paused),
                     'held_notes':sorted(self.held), 'undo_available':self.undo_layers is not None,
+                    'pending_composes':sorted(i+1 for i in self.pending_composes),
                     'error':self.error,
                     'layers':[{k:v for k,v in layer.items() if k not in ('notes','chords','settings')} |
                               {'note_count':len(layer['notes']), 'chord_note_count':len(layer['chords']),
@@ -262,16 +263,18 @@ class Looper:
             raise ValueError('a layer supports at most 2048 chord notes')
         if self.playing:
             boundary = (math.floor(max(0,self.beat)/self.length)+1)*self.length
-            self.pending_compose = {'index':index,'chords':entries,'config':config,'at':boundary}
+            self.pending_composes[index] = {'index':index,'chords':entries,'config':config,'at':boundary}  # replaces only this layer's
             return {'slot':index+1,'applies_at_beat':boundary,'chord_notes':len(entries)}
         self._commit(index,entries,config)
         return {'slot':index+1,'applies_at_beat':None,'chord_notes':len(entries)}
 
     def _land_compose(self):
-        """A waiting composition takes over its layer once the loop reaches its boundary. Caller holds the lock."""
-        compose = self.pending_compose
-        if compose and self.beat >= compose['at']:
-            self.pending_compose = None
+        """Each waiting composition takes over its layer once the loop reaches its boundary. Caller holds the lock."""
+        for index in sorted(self.pending_composes):
+            compose = self.pending_composes[index]
+            if self.beat < compose['at']:
+                continue
+            del self.pending_composes[index]
             if self.bus:
                 self.bus.release(compose['index'])
             self._commit(compose['index'],compose['chords'],compose['config'])
