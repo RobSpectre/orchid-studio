@@ -98,6 +98,7 @@ sorted held chord, so changing chord size changes pitches without changing rhyth
 | `chord_window_ms` | 8 | 0–50; wait after chord mutations to group incoming packets. |
 | `octave` | null | 0–8 or null; move each held chord by whole octaves so its lowest note is in this octave (C4 = 60). |
 | `velocity` | null | 1–127 or null; every note at this velocity instead of the key's (`velocity_limit` still caps it). |
+| `latch_beats` | 0 | 0–64; a released chord keeps sounding this many beats, or until the next chord. |
 
 Tempo-only changes preserve accumulated beat position, held voices and pending
 beat-based sweep timing. Most other musical setting changes retrigger/rejoin as

@@ -37,6 +37,31 @@ class PerformTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             settings({"octave": 9})
 
+    def test_latch_keeps_a_released_chord_sounding_until_its_beats_pass_or_the_next_chord(self):
+        """A robot taps a chord the loop will hold for bars: the live voice holds it the same way."""
+        e, sent = self.engine(mode="off", latch_beats=4)  # 120 BPM: 4 beats = 2 s
+        self.chord(e)
+        e.advance(0)
+        for pitch in (60, 64, 67):
+            e.receive([0x82, pitch, 0])  # released after a tap
+        e.advance(1.0)
+        self.assertEqual([m for m in sent if m[0] == 128], [])  # still sounding
+        e.advance(2.01)
+        self.assertEqual(sorted(m[1] for m in sent if m[0] == 128), [60, 64, 67])  # 4 beats on: released
+        e2, sent2 = self.engine(mode="off", latch_beats=16)
+        self.chord(e2)
+        e2.advance(0)
+        for pitch in (60, 64, 67):
+            e2.receive([0x82, pitch, 0])
+        e2.advance(1.0)
+        for pitch in (57, 60, 65):  # the next chord replaces the latched one
+            e2.receive([0x92, pitch, 90])
+        before = len(sent2)
+        e2.advance(1.0)
+        self.assertEqual(sorted(e2.held), [57, 60, 65])
+        self.assertTrue({64, 67} <= {m[1] for m in sent2 if m[0] == 128})  # the old chord's other notes stop
+        self.assertEqual(sorted(m[1] for m in sent2[before:] if m[0] == 144), [57, 60, 65])  # the new one strikes
+
     def test_two_octaves_and_pitch_range(self):
         e, sent = self.engine(mode="arp2")
         self.chord(e)

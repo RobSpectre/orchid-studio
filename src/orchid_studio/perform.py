@@ -28,7 +28,7 @@ PATTERNS = {
 DEFAULTS = {"bpm": 96, "mode": "arp", "step_beats": .5, "gate": .75,
             "velocity_limit": 80, "spread_beats": .25, "harp_octaves": 3,
             "slop": .35, "seed": 0, "pattern": "pulse", "chord_window_ms": 8,
-            "octave": None, "velocity": None}
+            "octave": None, "velocity": None, "latch_beats": 0}
 
 
 def settings(values):
@@ -52,6 +52,7 @@ def settings(values):
         integer(result["octave"], 0, 8, "octave")
     if result["velocity"] is not None:
         integer(result["velocity"], 1, 127, "velocity")
+    number(result["latch_beats"], 0, 64, "latch_beats")
     return result
 
 
@@ -61,7 +62,7 @@ def options():
         "gate": ("number", .05, 1), "velocity_limit": ("integer", 1, 127),
         "spread_beats": ("number", 0, 4), "harp_octaves": ("integer", 1, 4),
         "slop": ("number", 0, 1), "seed": ("integer", 0, 2**32 - 1),
-        "chord_window_ms": ("number", 0, 50),
+        "chord_window_ms": ("number", 0, 50), "latch_beats": ("number", 0, 64),
     }
     schema = {key: {"type": kind, "minimum": low, "maximum": high,
                     "default": DEFAULTS[key]} for key, (kind, low, high) in fields.items()}
@@ -98,6 +99,7 @@ class PerformanceEngine:
         self.timeline=None
         self.player = Player(send, {self.output_channel})
         self.pressed, self.held, self.voices = {}, {}, {}
+        self.latched = {}  # released pitches still sounding (latch_beats): pitch -> the beat they stop
         self.sustain = False
         self.beat, self.last_time, self.last_tick = 0., now, -1
         self.index, self.pattern_tick = 0, -1
@@ -158,10 +160,17 @@ class PerformanceEngine:
         before = dict(self.held)
         attack = kind == 0x90 and value != 0
         if attack:
+            if self.latched and not self.pressed:  # a new chord replaces the one still latched
+                for latched in self.latched:
+                    self.held.pop(latched, None)
+                self.latched.clear()
+            self.latched.pop(pitch, None)
             self.pressed[pitch] = self.held[pitch] = value
         elif kind == 0x80 or (kind == 0x90 and not value):
             self.pressed.pop(pitch, None)
-            if not self.sustain:
+            if self.config["latch_beats"] and pitch in self.held and not self.sustain:
+                self.latched[pitch] = self.beat + self.config["latch_beats"]  # keeps sounding, as a loop would hold it
+            elif not self.sustain:
                 self.held.pop(pitch, None)
         elif kind == 0xB0 and pitch == 64:
             self.sustain = value >= 64
@@ -170,7 +179,12 @@ class PerformanceEngine:
         elif kind == 0xB0 and pitch in (120, 123):
             self.pressed.clear()
             self.held.clear()
+            self.latched.clear()
             self.sustain = False
+        self._changed(before, attack, now)
+
+    def _changed(self, before, attack, now=None):
+        """The held set changed: regroup the chord, stop what is no longer held."""
         if before != self.held or attack:
             self.dirty = True
             self.retrigger |= attack
@@ -210,6 +224,14 @@ class PerformanceEngine:
 
     def advance(self, now):
         self._clock(now)
+        expired = [p for p, until in self.latched.items() if self.beat + 1e-9 >= until]
+        if expired:
+            before = dict(self.held)
+            for pitch in expired:
+                self.latched.pop(pitch)
+                if pitch not in self.pressed:
+                    self.held.pop(pitch, None)
+            self._changed(before, False, now)
         if self.dirty and now + 1e-9 < self.settle_until:
             return
         pitches = self.pitches()
@@ -304,6 +326,7 @@ class PerformanceEngine:
     def panic(self):
         self.pressed.clear()
         self.held.clear()
+        self.latched.clear()
         self.pending.clear()
         self.sustain = self.dirty = self.retrigger = False
         self.melody_anchor=None

@@ -84,7 +84,7 @@ class APITests(unittest.TestCase):
                 self.assertEqual(response['status'], 'ok')
                 updated = dict(bpm=88, mode='harp', pattern='falling', harp_octaves=4,
                                step_beats=1, gate=.6, velocity_limit=72, spread_beats=.75,
-                               slop=.8, seed=19, chord_window_ms=12, octave=3, velocity=90)
+                               slop=.8, seed=19, chord_window_ms=12, octave=3, velocity=90, latch_beats=8)
                 self.assertEqual(c.execute({'command': 'perform-update', 'settings': updated})['status'], 'queued')
                 deadline = time.monotonic() + 1
                 while any(c.transport.live.config[k]!=v for k,v in updated.items() if k!='bpm') and time.monotonic() < deadline:
