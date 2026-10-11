@@ -19,6 +19,7 @@ func fourCC(_ text:String)->UInt32 { text.utf8.reduce(0) { ($0 << 8) | UInt32($1
 struct HostError: Error { let message:String }
 let engine = AVAudioEngine()
 var units:[AVAudioUnitMIDIInstrument] = []
+var midiSchedulers:[MIDIRenderScheduler] = []
 var drumSampler:DrumSampler!
 let drumMixer=AVAudioMixerNode()
 let audioActivity=ProcessInfo.processInfo.beginActivity(options:[.userInitiated,.latencyCritical],reason:"Orchid Studio live audio")
@@ -54,17 +55,22 @@ func audioInfo()->[String:Any] {
 }
 let routeObserver=NotificationCenter.default.addObserver(forName:.AVAudioEngineConfigurationChange,object:engine,queue:.main) { _ in
     guard ready else {return}
+    for slot in 0..<units.count {panic(slot)}
     routeRevision += 1
     let revision=routeRevision
     DispatchQueue.main.asyncAfter(deadline:.now()+0.15) {
         guard revision==routeRevision,ready else {return}
         do {
             if !engine.isRunning {
-                for slot in 0..<units.count {panic(slot)}
                 let format=engine.outputNode.inputFormat(forBus:0)
                 guard format.sampleRate>0,format.channelCount>0 else {throw HostError(message:"No audio output is available")}
                 engine.disconnectNodeOutput(engine.mainMixerNode)
                 engine.connect(engine.mainMixerNode,to:engine.outputNode,format:format)
+                for i in 0..<units.count {
+                    let rate=units[i].outputFormat(forBus:0).sampleRate
+                    guard rate.isFinite,rate>0 else {throw HostError(message:"Invalid instrument sample rate")}
+                    midiSchedulers[i].queue.setSampleRate(rate)
+                }
                 try engine.start()
             }
             audioError=nil
@@ -77,6 +83,7 @@ let routeObserver=NotificationCenter.default.addObserver(forName:.AVAudioEngineC
 }
 
 func panic(_ slot:Int) {
+    midiSchedulers[slot].queue.cancelAndPanic()
     for ch in 0..<16 {
         for cc in [64,66,123,120] { units[slot].sendController(UInt8(cc),withValue:0,onChannel:UInt8(ch)) }
     }
@@ -90,6 +97,7 @@ func stateInfo(_ slot:Int)->[String:Any] {
     peakLock.lock();let peak=peaks[slot];peakLock.unlock()
     return ["slot":slot+1,"preset":au.currentPreset?.name ?? "Pistil",
             "peak":peak,"volume":gains[slot].outputVolume,"pan":gains[slot].pan,
+            "midi":midiSchedulers[slot].queue.snapshot(),
             "editor_open":windows[slot]?.isVisible ?? false]
 }
 func showEditor(_ slot:Int, id:Any) {
@@ -117,7 +125,7 @@ func handle(_ request:[String:Any]) {
         let slot=(request["slot"] as? Int ?? 1)-1
         guard (0..<6).contains(slot) else {throw HostError(message:"slot must be 1–6")}
         switch command {
-        case "status":reply(["id":id,"status":"ok","ready":ready,"output_enabled":outputEnabled,"bpm":bpm,"uptime":ProcessInfo.processInfo.systemUptime,"audio":audioInfo(),"drums":drumSampler.status(),"layers":(0..<6).map{stateInfo($0)}]);return
+        case "status":reply(["id":id,"status":"ok","ready":ready,"output_enabled":outputEnabled,"bpm":bpm,"uptime":ProcessInfo.processInfo.systemUptime,"audio":audioInfo(),"drums":drumSampler.status(),"midi_scheduling":"render-buffer-v1","layers":(0..<6).map{stateInfo($0)}]);return
         case "enable":
             outputEnabled=request["enabled"] as? Bool ?? false
             engine.mainMixerNode.outputVolume=outputEnabled ? 0.35 : 0
@@ -127,15 +135,9 @@ func handle(_ request:[String:Any]) {
         case "midi":
             guard let bytes=request["message"] as? [Int], bytes.count==3,
                   (0x80..<0xF0).contains(bytes[0]), (0...127).contains(bytes[1]),(0...127).contains(bytes[2]) else {throw HostError(message:"invalid MIDI event")}
-            if let at=request["at"] as? Double, let last=units[slot].lastRenderTime,
-               last.isHostTimeValid,last.isSampleTimeValid,let schedule=units[slot].auAudioUnit.scheduleMIDIEventBlock {
-                let delta=at-AVAudioTime.seconds(forHostTime:last.hostTime)
-                let target=last.sampleTime+Int64(max(0,delta)*last.sampleRate)
-                let midi=bytes.map{UInt8($0)}
-                midi.withUnsafeBufferPointer {buffer in schedule(target,0,3,buffer.baseAddress!)}
-            } else {
-                units[slot].sendMIDIEvent(UInt8(bytes[0]),data1:UInt8(bytes[1]),data2:UInt8(bytes[2]))
-            }
+            if request["at"] != nil && !(request["at"] is Double) {throw HostError(message:"invalid MIDI deadline")}
+            try midiSchedulers[slot].queue.enqueue(at:request["at"] as? Double ?? ProcessInfo.processInfo.systemUptime,
+                status:UInt32(bytes[0]),data1:UInt32(bytes[1]),data2:UInt32(bytes[2]))
         case "mix":
             guard let volume=request["volume"] as? Double,volume.isFinite,(0...1.5).contains(volume),
                   let pan=request["pan"] as? Double,pan.isFinite,(-1...1).contains(pan) else {throw HostError(message:"invalid mixer values")}
@@ -176,7 +178,8 @@ func handle(_ request:[String:Any]) {
             drumSampler.stop()
             engine.mainMixerNode.outputVolume=0
             for i in 0..<6 {panic(i)}
-            // Drain the 40 ms scheduled MIDI horizon while silent before acknowledging Stop.
+            // Queued notes are cancelled immediately. Allow the current audio buffer
+            // and release controllers to finish while silent before acknowledging Stop.
             DispatchQueue.main.asyncAfter(deadline:.now()+0.06) {
                 for i in 0..<6 {panic(i)}
                 engine.mainMixerNode.outputVolume=outputEnabled ? 0.35 : 0
@@ -199,6 +202,7 @@ func handle(_ request:[String:Any]) {
             for i in 0..<6 {panic(i);units[i].auAudioUnit.fullState=states[min(i,states.count-1)]}
             stateReadyAt=Date().addingTimeInterval(0.06)
         case "quit":
+            ready=false
             for i in 0..<6 {panic(i)}
             engine.stop();reply(["id":id,"status":"ok"]);app.terminate(nil);return
         default:throw HostError(message:"unknown host command")
@@ -224,6 +228,11 @@ func loadNext() {
             engine.connect(delay,to:reverb,format:nil)
             engine.connect(reverb,to:mixer,format:nil)
             engine.connect(mixer,to:engine.mainMixerNode,format:nil)
+            do {
+                let scheduler=try MIDIRenderScheduler(unit:instrument.audioUnit,
+                    rate:instrument.outputFormat(forBus:0).sampleRate)
+                midiSchedulers.append(scheduler)
+            } catch {reply(["event":"host_error","error":error.localizedDescription]);exit(1)}
             instrument.auAudioUnit.musicalContextBlock = { tempo, signatureNumerator, signatureDenominator, beat, sampleOffset, downbeat in
                 tempo?.pointee=bpm;signatureNumerator?.pointee=4;signatureDenominator?.pointee=4
                 beat?.pointee=0;sampleOffset?.pointee=0;downbeat?.pointee=0
@@ -262,7 +271,11 @@ DispatchQueue.global(qos:.userInteractive).async {
         guard let data=line.data(using:.utf8),let request=(try? JSONSerialization.jsonObject(with:data)) as? [String:Any] else {continue}
         DispatchQueue.main.async {handle(request)}
     }
-    DispatchQueue.main.async {engine.stop();app.terminate(nil)}
+    DispatchQueue.main.async {
+        ready=false
+        for i in 0..<midiSchedulers.count {panic(i)}
+        engine.stop();app.terminate(nil)
+    }
 }
 loadNext()
 app.run()

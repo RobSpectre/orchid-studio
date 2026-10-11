@@ -21,11 +21,13 @@ def build_host():
     sources = files('orchid_studio').joinpath('native')
     main = cache / 'main.swift'
     sampler = cache / 'DrumSampler.swift'
+    scheduler = cache / 'MIDIScheduler.swift'
     main.write_text(sources.joinpath('PistilHost.swift').read_text())
     sampler.write_text(sources.joinpath('DrumSampler.swift').read_text())
+    scheduler.write_text(sources.joinpath('MIDIScheduler.swift').read_text())
     temporary = target.with_suffix('.next')
     result = subprocess.run(['xcrun', 'swiftc', '-swift-version', '5', '-O',
-        '-module-cache-path', str(cache), str(main), str(sampler), '-o', str(temporary),
+        '-module-cache-path', str(cache), str(main), str(sampler), str(scheduler), '-o', str(temporary),
         '-framework', 'AppKit', '-framework', 'AVFoundation', '-framework', 'AudioToolbox',
         '-framework', 'CoreAudioKit'], capture_output=True, text=True)
     if result.returncode:
