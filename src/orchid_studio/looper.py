@@ -162,6 +162,7 @@ class Looper:
         self.undo_layers = None
         self.take = None
         self.pending_composes = {}  # layer index -> its composition waiting for the next loop boundary (loop-compose)
+        self.monitor_target = 5  # the voice live input sounds through outside a take (loop-monitor): 5 is Live Perform
         self.beat = 0.
         self.held = {}
         self.error = None
@@ -195,6 +196,7 @@ class Looper:
                     'start_on_key':self.start_on_key, 'waiting_for_key':bool(self.start_on_key and self.timeline and self.timeline.paused),
                     'held_notes':sorted(self.held), 'undo_available':self.undo_layers is not None,
                     'pending_composes':sorted(i+1 for i in self.pending_composes),
+                    'monitor_slot':self.monitor_target,
                     'error':self.error,
                     'layers':[{k:v for k,v in layer.items() if k not in ('notes','chords','settings')} |
                               {'note_count':len(layer['notes']), 'chord_note_count':len(layer['chords']),
@@ -315,6 +317,12 @@ class Looper:
         with self.lock:
             if action == 'cancel':
                 self.take = None
+                return
+            if action == 'monitor':  # live input sounds through this voice: a loop layer's own, so a part is heard as it will loop
+                slot = 5 if request.get('slot') is None else integer(request.get('slot'),1,5,'slot')
+                if slot != self.monitor_target and self.bus:
+                    self.bus.release('monitor')  # notes sounding on the old voice stop there
+                self.monitor_target = slot
                 return
             if action == 'mute':
                 index = integer(request.get('slot'),1,4,'slot')-1
@@ -525,7 +533,7 @@ class Looper:
                     self._land_compose()
                     if not self.take and self.live_config and any(monitor.config[k]!=v for k,v in self.live_config.items() if k!='bpm'):
                         monitor.update({**self.live_config,'bpm':self.perform['bpm']},now)
-                    if isinstance(self.bus,LayerVoices):self.bus.monitor_slot=self.take['slot']+1 if self.take else 5
+                    if isinstance(self.bus,LayerVoices):self.bus.monitor_slot=self.take['slot']+1 if self.take else self.monitor_target
                     for _ in range(256):
                         if wake_messages:msg=wake_messages.pop(0)
                         else:

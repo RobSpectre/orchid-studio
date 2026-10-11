@@ -19,7 +19,7 @@ COMMANDS = ("status", "capabilities", "events", "perform-options", "perform-conf
             "perform", "perform-update", "demo", "play", "drums", "beats-list", "chord-voicing", "key-press", "key-release",
             "beats-load", "beats-select", "beats-play", "sound-follow", "stop", "panic", "quit",
             "loop-configure", "loop-start", "loop-record", "loop-cancel", "loop-mute",
-            "loop-step", "loop-clear", "loop-undo", "loop-export", "loop-import", "loop-compose",
+            "loop-step", "loop-clear", "loop-undo", "loop-export", "loop-import", "loop-compose", "loop-monitor",
             "pistil-enable", "pistil-status", "layer-select", "layer-editor", "layer-preset",
             "beat-get", "beat-save", "kits-list", "kits-import", "sample-upload", "sound-preview", "clock-configure", "drums-length", "tempo", "mixer-set", "mixer-get", "mixer-cancel", "pause", "resume", "play-along", "beat-edit", "sounds-list", "command-help", "key-start", "key-monitor", "key-events", "clock", "fx")
 
@@ -413,7 +413,7 @@ class Controller:
                     if transport.drums:
                         transport.drums.command('volume',self.drum_state['volume'])
                         transport.drums.set_length(drum_save.get('loop_bars'),self.selected_beat)
-            elif command in ('loop-cancel','loop-mute','loop-step','loop-clear','loop-undo','loop-compose'):
+            elif command in ('loop-cancel','loop-mute','loop-step','loop-clear','loop-undo','loop-compose','loop-monitor'):
                 resolved = dict(request)
                 if command in ('loop-step','loop-compose'):
                     resolved['settings'] = settings({**self.defaults, **request.get('settings', {})})

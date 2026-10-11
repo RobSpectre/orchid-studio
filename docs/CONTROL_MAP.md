@@ -15,7 +15,7 @@ The same map is available from `command-help`; filter with `name`. This referenc
 | Pistil sound / per-layer selectors / editor / destination | `sounds-list`, `layer-select`, `layer-preset`, `layer-editor`, `pistil-status` | Each loop card changes only its own slot and preserves notes; mixer destination picker passes an explicit slot. Factory map describes defaults, not edited current patches. |
 | Perform dial / bank / rhythm / fine controls | `perform-options`, `perform-configure`, `perform-update` | Bank is navigation; use its mode ID. Every fine control is in settings_schema. |
 | Play Along On/Off | `play-along` | Separate raw-chord voice, slot 6. |
-| Loop record / cancel / mute / clear / undo | `loop-start`, `loop-record`, `loop-cancel`, `loop-mute`, `loop-clear`, `loop-undo` | See command prerequisites; explicit slot avoids selected-layer ambiguity. |
+| Loop record / cancel / mute / clear / undo | `loop-start`, `loop-record`, `loop-cancel`, `loop-mute`, `loop-monitor`, `loop-clear`, `loop-undo` | See command prerequisites; explicit slot avoids selected-layer ambiguity. |
 | Loop length / snap / count-in | `loop-configure` | bars, grid and count_in fields. |
 | Loop step / rest / cursor | `loop-step` | Rest advances the client beat cursor without inserting a note; next loop-step supplies the new beat. |
 | Start drums with loops | `loop-start` | Pass drums object to include; omit for none. Applies to new start, not pause/resume. |
@@ -228,6 +228,14 @@ Mute/unmute one loop layer.
 **Fields:** slot:1–4; muted:boolean
 
 **Behavior:** Available live
+
+### loop-monitor
+
+Choose the voice live input sounds through outside a take.
+
+**Fields:** slot?: 1–4 (a loop layer) or 5 (Live Perform, the default; omit for 5)
+
+**Behavior:** Available live; a layer’s own sound, fx and mixer level, so a part played into that layer is heard as it will loop. Notes sounding on the old voice stop. status.looper.monitor_slot reports it
 
 ### loop-compose
 

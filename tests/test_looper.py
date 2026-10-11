@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import Mock
 
 from orchid_studio.api import Controller
-from orchid_studio.looper import Looper, Voices, quantize, render
+from orchid_studio.looper import LayerVoices, Looper, Voices, quantize, render
 from orchid_studio.perform import settings
 from orchid_studio.sequencer import compile_session
 
@@ -189,6 +189,22 @@ class ComposeTests(unittest.TestCase):
         self.assertEqual(sounded,[48,52])  # held across the position; the note at beat 2 comes from playback as usual
         self.assertEqual(events[-1],{'event':'loop_composed','slot':3,'beat':17.5})
         self.assertEqual(l.snapshot()['pending_composes'],[])
+
+    def test_live_input_can_sound_through_a_layers_own_voice(self):
+        """A robot pass played into layer 3 is heard in layer 3's sound as it is played, not only once it loops."""
+        l=Looper(lambda m:None,lambda e:None)
+        router=Mock();l.bus=LayerVoices(router)
+        self.assertEqual(l.snapshot()['monitor_slot'],5)
+        l.bus.receive('monitor',[0x90,60,90])  # sounding on Live Perform
+        l.edit('monitor',{'slot':3})
+        self.assertEqual(l.snapshot()['monitor_slot'],3)
+        router.send_layer.assert_any_call(5,[0x80,60,0])  # the note on the old voice stops
+        l.bus.monitor_slot=l.monitor_target  # what the playback worker applies each tick
+        l.bus.receive('monitor',[0x90,62,90])
+        router.send_layer.assert_called_with(3,[0x90,62,90])
+        l.edit('monitor',{})
+        self.assertEqual(l.snapshot()['monitor_slot'],5)
+        with self.assertRaises(ValueError):l.edit('monitor',{'slot':6})
 
     def test_each_layer_keeps_its_own_pending_composition_and_a_recompose_replaces_only_that_layers(self):
         events=[];l=Looper(lambda m:None,events.append)
