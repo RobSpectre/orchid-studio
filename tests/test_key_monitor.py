@@ -87,6 +87,18 @@ class KeyMonitorTests(unittest.TestCase):
             KeyMonitor(Mock(), "Orchid Studio Playback")
 
 
+    def test_a_dial_turn_is_marked_as_a_hand_unless_studio_just_set_the_voicing(self):
+        """orchid-robot stops the arms on a hand on the voicing dial; Orchid answering chord-voicing is not one."""
+        clock = Mock(return_value=10.0)
+        monitor = KeyMonitor(Mock(), "Orchid", clock=clock)
+        monitor.receive([0xB0, 115, 20], 10.0)
+        monitor.expect_software_voicing(2.0)
+        monitor.receive([0xB0, 115, 30], 11.0)
+        monitor.receive([0xB0, 115, 31], 12.5)
+        sources = [(e["value"], e["source"]) for e in monitor.events()["events"]]
+        self.assertEqual(sources, [(20, "dial"), (30, "software"), (31, "dial")])
+
+
 class KeyMonitorApiTests(unittest.TestCase):
     def test_enable_read_and_disable_through_the_api(self):
         c = Controller(Mock(), Mock())

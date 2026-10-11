@@ -216,6 +216,8 @@ class Controller:
             from .voicing import set_chord_voicing
             if set(request) - {'command', 'id', 'value', 'output'}:
                 raise ValueError('chord-voicing fields: value, output')
+            if self.key_monitor:  # Orchid may report the new position: that is not a hand on the dial
+                self.key_monitor.expect_software_voicing()
             self.chord_voicing = set_chord_voicing(request.get('value'), request.get('output', 'Orchid'))
             self.report({'event': 'chord_voicing_sent', **self.chord_voicing})
             return {'status': 'sent', 'chord_voicing': dict(self.chord_voicing)}

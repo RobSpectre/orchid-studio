@@ -86,6 +86,7 @@ class KeyMonitor:
         self.decoder = KeyDecoder(chord_channel)
         self.report, self.input_name, self.beat_at, self.clock = report, input_name, beat_at, clock
         self.lock = threading.Lock()
+        self.software_until = float("-inf")  # voicing reports before this time answer Studio's own chord-voicing
         self.history = deque(maxlen=HISTORY)
         self.last_id = 0
         self.stop_event = threading.Event()
@@ -115,7 +116,16 @@ class KeyMonitor:
             if event["type"] == "press":
                 self.state = {**self.state, "presses": self.state["presses"] + 1}
             elif event["type"] == "voicing":
+                # a hand on the dial, or Orchid answering Studio's own chord-voicing: clients that treat a turn as a
+                # signal (orchid-robot's stop) must not react to Studio's own setting
+                self.history[-1]["source"] = "software" if event["t"] <= self.software_until else "dial"
                 self.state = {**self.state, "last_voicing": event["value"]}
+
+    def expect_software_voicing(self, seconds=2.0):
+        """Studio is about to set the voicing itself (chord-voicing): Orchid's reports in the next `seconds` are
+        marked source "software", not a hand on the dial."""
+        with self.lock:
+            self.software_until = self.clock() + seconds
 
     def events(self, after=0):
         with self.lock:

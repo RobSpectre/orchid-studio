@@ -202,7 +202,9 @@ voicing-dial value. `key-events` returns events after an `id` cursor, plus
 
 - `press`: `t`, `root`, `name` (C…B), `octave`, `notes`, `intervals`, `velocity`, `beat`.
 - `release`: `t`, `press_t`, `root`, `name`, `held_s` (when the press's last note stopped).
-- `voicing`: `t`, `value` (dial position), `delta` (clicks since the previous report).
+- `voicing`: `t`, `value` (dial position), `delta` (clicks since the previous report), `source`: `dial`
+  (a hand on the dial) or `software` (Orchid answering Studio's own `chord-voicing` within 2 s). orchid-robot
+  stops its arms on a `dial` turn: the voicing dial is the operator's stop control.
 
 Observed on this Orchid: a key alone sends one note on the raw Chord channel; a held
 chord button adds its chord at the same instant with one velocity, and sends nothing
