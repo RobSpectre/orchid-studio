@@ -718,3 +718,30 @@ not acoustic latency; user hearing confirmation remains separate.
   at control rate, use elapsed seconds independent of musical transport, and are
   not sample-atomic, beat-quantized or equal-power crossfades. Session exports save
   current applied values; unfinished fades are not replayed on import.
+
+### Voicing setter and timed API keys — 2026-10-10
+
+- Added `chord-voicing` using the researched checksummed vendor command `0x45`,
+  bounded to integers 1–60. The original sibling archive is absent on this Mac;
+  the packet/range were checked read-only against the cached research CLI wheel's
+  `protocol.voicing_packet` and `vendor` functions. No captures were replayed.
+  This is separate from outgoing CC115. Tests assert packet bytes, checksum,
+  exact port selection, invalid-input rejection and output cleanup on failure.
+- Added native software `key-press` / `key-release`, with orchid-robot's key names
+  and duration grammar, asynchronous completion, Studio-tempo timing and MIDI
+  channel 16 on an explicit voice (default slot 6). Tests cover all 12 keys,
+  dotted/triplet/tied/bar durations, pitch bounds, immediate tempo changes and
+  integrated ramps, cancellation, errors, pedal cleanup and service shutdown.
+- All 171 Python tests and both browser tests passed. The HTTP test required
+  loopback socket access outside the restricted sandbox. Source and installed
+  skill validators passed; API/control references and both skill copies updated.
+- Checkpointed the stopped local service under
+  `local/backups/key-api-20261010/`, restarted with the saved session, and checked
+  restored loop data, sound labels, mixer, effects and 78 BPM. Confirmed all three
+  endpoints appear in live capabilities. A velocity-40 C4 quarter-note press
+  returned queued, produced native slot-6 meter activity, and reached `released`
+  with reason `duration`; polling observed completion after 0.827 seconds
+  (written duration at 78 BPM: 0.769 seconds). No listening confirmation.
+- Hardware voicing was not changed during this validation: the current value
+  was unknown. Responses deliberately report `sent` and `confirmed:false`; a
+  successful packet send is not hardware readback or confirmation of its effect.

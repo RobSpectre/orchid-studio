@@ -1,6 +1,6 @@
 ---
 name: orchid-studio-control
-description: Operate Orchid Studio through its local API — transport, six Pistil voices, Perform modes, loops, drums, samples, mixer scenes, fades and MIDI clock. Use for Studio control, DJ-style mixing and discovering its sound/Perform map; not for Orchid firmware or hardware parameter research.
+description: Operate Orchid Studio through its local API — transport, six Pistil voices, timed keys, chord voicing, Perform modes, loops, drums, samples, mixer scenes, fades and MIDI clock. Use for Studio control, DJ-style mixing and discovering its sound/Perform map; not for Orchid firmware or hardware parameter research.
 ---
 
 # Orchid Studio control
@@ -75,6 +75,24 @@ at 24 PPQN with Start/Stop/Continue (no idle clock or SPP), default offset 40 ms
 Orchid's hardware arpeggiator is not a verified clock follower.
 
 ## Musical operations
+
+`chord-voicing` sets Orchid hardware's absolute raw chord voicing: `value:1–60`,
+optional exact `output` (default `Orchid`). This narrow one-shot SysEx setter is
+the hardware-output exception; do not use a feedback route or replay CC115.
+`sent` / `status.chord_voicing` records dispatch, not confirmed hardware state.
+The key monitor's last CC115 report is separate and is not rewritten by the setter.
+
+`key-press` plays one software key immediately: `key:"F#", duration:"1bar+1/4"`,
+optional `octave` (default 4), `velocity` (64), `slot` (6). Native host required.
+Keys and duration strings match orchid-robot's score notation (`1/8.`, `1/4t`,
+`w/h/q/e/s`, fractional bars, `+` ties; default `1/8`). This is direct playback,
+not hardware key actuation or a chord/Perform trigger. Hardware voicing does not
+change these pitches. Keep MIDI channel 16 free on the target slot for API keys.
+One API key at a time; wait for `key_released` or call `key-release` before the
+next press. `queued` returns a `press_id`; verify `status.key_press` and events.
+Durations follow Studio tempo. Stop/panic/quit/shutdown and transport pause cancel;
+`key-release` leaves loops and physical input running. See [API.md](references/api.md)
+for all notation, pitch limits and completion/error semantics.
 
 For mixer work, read `mixer-get` and `capabilities.mixer_schema`; retain the returned
 `mixer` object before a DJ move. `mixer-set` accepts one `channel` or a `channels`

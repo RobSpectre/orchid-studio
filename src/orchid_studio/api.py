@@ -18,7 +18,7 @@ from .control_reference import reference, UI_MAP, BEAT_EDITOR
 from .mixer import MixerAutomation, SCHEMA as MIXER_SCHEMA, parse_set as parse_mixer_set
 
 COMMANDS = ("status", "capabilities", "events", "perform-options", "perform-configure",
-            "perform", "perform-update", "demo", "play", "drums", "beats-list",
+            "perform", "perform-update", "demo", "play", "drums", "beats-list", "chord-voicing", "key-press", "key-release",
             "beats-load", "beats-select", "beats-play", "sound-follow", "stop", "panic", "quit",
             "loop-configure", "loop-start", "loop-record", "loop-cancel", "loop-mute",
             "loop-step", "loop-clear", "loop-undo", "loop-export", "loop-import", "loop-compose",
@@ -54,6 +54,9 @@ class Controller:
         self.transport = Transport(self.software_send, self.report,
                                    StudioDrums(drums, self.library) if drums is not None else None)
         self.transport.looper.router = self.sounds
+        from .key_press import KeyPress
+        self.key_press = KeyPress(self.sounds.send_layer, self.transport.timeline, self.report)
+        self.chord_voicing = None
         from .play_along import PlayAlong
         self.play_along = PlayAlong(lambda m:self.sounds.send_layer(6,m),self.report)
         self.transport.tempo_sink = self._send_tempo
@@ -94,6 +97,8 @@ class Controller:
                 "midi_clock":self.transport.clock_output.snapshot(),
                 "sound_follow": dict(self.sound_follower.state) if self.sound_follower else {"enabled": False},
                 "key_monitor": dict(self.key_monitor.state) if self.key_monitor else {"enabled": False},
+                "key_press": self.key_press.snapshot(),
+                "chord_voicing": copy.deepcopy(self.chord_voicing),
                 "performance": {"input": live.input_name, "chord_channel": live.chord_channel,
                                 "output_channel": live.output_channel, "settings": {**live.config,"bpm":self.transport.timeline.target_bpm},
                                 "pending_updates": live.updates.qsize()} if live else None,
@@ -210,6 +215,22 @@ class Controller:
     def _execute(self, request):
         command = request.get("command")
         transport = self.transport
+        if command == 'chord-voicing':
+            from .voicing import set_chord_voicing
+            if set(request) - {'command', 'id', 'value', 'output'}:
+                raise ValueError('chord-voicing fields: value, output')
+            self.chord_voicing = set_chord_voicing(request.get('value'), request.get('output', 'Orchid'))
+            self.report({'event': 'chord_voicing_sent', **self.chord_voicing})
+            return {'status': 'sent', 'chord_voicing': dict(self.chord_voicing)}
+        if command == 'key-press':
+            from .key_press import parse_press
+            spec = parse_press(request)
+            if not self.sounds.healthy():
+                raise ValueError('enable native Pistil audio for key-press')
+            return {'status': 'queued', 'key_press': self.key_press.start(spec)}
+        if command == 'key-release':
+            self.key_press.stop()
+            return {'status': 'ok', 'key_press': self.key_press.snapshot()}
         if command == 'command-help':
             return {'status':'ok','commands':reference(request.get('name')),'ui_map':copy.deepcopy(UI_MAP),'beat_editor':copy.deepcopy(BEAT_EDITOR)}
         if command == 'sounds-list':
@@ -242,6 +263,7 @@ class Controller:
             return {'status':'ok','tempo':transport.timeline.snapshot()}
         if command in ('pause','resume'):
             transport.pause(command=='pause')
+            if command == 'pause': self.key_press.stop()
             # Each transport worker releases its own voices; Play Along stays live.
             return {'status':'ok','tempo':transport.timeline.snapshot()}
         if command == 'play-along':
@@ -276,7 +298,7 @@ class Controller:
                         "strip-volume", "strip-pan", "strip-mute-toggle", "strip-solo-toggle"]}
         if command in ('pistil-enable','pistil-status','layer-select','layer-editor','layer-preset'):
             if command == 'pistil-enable':
-                if transport.playing:
+                if transport.playing or self.key_press.snapshot()['status'] in ('queued', 'held'):
                     raise ValueError('stop playback before enabling independent sounds')
                 from .paths import host_path
                 path = host_path()
@@ -370,7 +392,7 @@ class Controller:
                 return {'status':'ok','document':document}
             elif command == 'loop-import':
                 document = request.get('document')
-                if transport.playing:
+                if transport.playing or self.key_press.snapshot()['status'] in ('queued', 'held'):
                     raise ValueError('stop playback before importing loops and sounds')
                 from .looper import Looper
                 validator = Looper(lambda m: None, lambda e: None)
@@ -595,6 +617,7 @@ class Controller:
             return result
         elif command in ("stop", "panic", "quit"):
             self.mixer.cancel()
+            self.key_press.stop()
             (transport.panic if command in ("panic", "quit") else transport.stop)()
             with self.play_along.voice_lock:
                 try:self.play_along.panic()
@@ -612,6 +635,7 @@ class Controller:
         with self.lock:
             self.mixer.cancel()
             self.closed.set()
+            self.key_press.stop()
             if self.midi_connection:self.midi_connection.close()
             self.play_along.stop()
             if self.sound_follower:
