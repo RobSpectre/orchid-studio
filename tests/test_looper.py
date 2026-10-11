@@ -169,6 +169,27 @@ class ComposeTests(unittest.TestCase):
                     {'slot':1,'chords':[{'beat':0,'notes':[]}]}):
             with self.assertRaises(ValueError):l.edit('compose',bad)
 
+    def test_a_take_lands_at_the_end_of_its_pass_and_a_late_one_takes_over_at_once_sounding_what_is_held(self):
+        """A robot's take is composed for the boundary after the pass it was played on: if it arrives a little after
+        that boundary it still plays this pass (its held notes sound at once), not a whole loop later."""
+        events=[];l=Looper(lambda m:None,events.append)
+        l.configure({'bars':4})
+        playing=Mock();playing.is_alive.return_value=True;l.worker=playing;l.bus=Mock()
+        chords=[{'beat':0,'duration':4,'notes':[48,52]},{'beat':2,'duration':1,'notes':[60]}]
+        l.beat=14.0
+        done=l.edit('compose',{'slot':3,'chords':chords,'settings':{'mode':'off'},'at_beat':16})
+        self.assertEqual(done['applies_at_beat'],16)  # on time: waits for its boundary
+        l.pending_composes.clear()
+        l.beat=17.5  # 1.5 beats into the next pass: late
+        done=l.edit('compose',{'slot':3,'chords':chords,'settings':{'mode':'off'},'at_beat':16})
+        self.assertEqual((done['applies_at_beat'],done['late_beats']),(17.5,1.5))
+        self.assertEqual(sorted(c['note'] for c in l.layers[2]['chords']),[48,52,60])
+        l.bus.release.assert_called_with(2)
+        sounded=sorted(call.args[1][1] for call in l.bus.receive.call_args_list)
+        self.assertEqual(sounded,[48,52])  # held across the position; the note at beat 2 comes from playback as usual
+        self.assertEqual(events[-1],{'event':'loop_composed','slot':3,'beat':17.5})
+        self.assertEqual(l.snapshot()['pending_composes'],[])
+
     def test_each_layer_keeps_its_own_pending_composition_and_a_recompose_replaces_only_that_layers(self):
         events=[];l=Looper(lambda m:None,events.append)
         l.configure({'bars':4})

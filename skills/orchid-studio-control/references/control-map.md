@@ -233,9 +233,9 @@ Mute/unmute one loop layer.
 
 Replace one loop layer with a whole composition, at the next loop boundary while playing.
 
-**Fields:** slot:1–4; chords:[{beat:0+, duration?:beats (default 1, held to the loop end at most), notes:[0–127] (1–16), velocity?:1–127}] (1–512); settings?: Perform settings
+**Fields:** slot:1–4; chords:[{beat:0+, duration?:beats (default 1, held to the loop end at most), notes:[0–127] (1–16), velocity?:1–127}] (1–512); settings?: Perform settings; at_beat?: timeline beat to take over at
 
-**Behavior:** Playing: takes over on the next loop boundary (composed.applies_at_beat), the pass in progress plays on; stopped: at once. Event loop_composed when it lands
+**Behavior:** Playing: takes over on the next loop boundary, or at_beat (composed.applies_at_beat), the pass in progress plays on; an at_beat already passed takes over at once, sounding held notes (late_beats); stopped: at once. Event loop_composed when it lands
 
 ### loop-step
 

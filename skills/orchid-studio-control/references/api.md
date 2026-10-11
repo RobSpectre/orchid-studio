@@ -227,6 +227,9 @@ one loop layer with a whole composition (chords at beats, 1–512, each 1–16 M
 takes over on the **next loop boundary** (`composed.applies_at_beat`; event `loop_composed`), so the pass in progress
 plays on. orchid-robot uses this to loop what its arms just played, each chord moved onto its written beat. Stopped, it applies at once.
 Each layer keeps its own pending composition; `status.looper.pending_composes` lists the slots waiting.
+Optional `at_beat` (a timeline beat) takes over there instead of the next boundary: give the end of the pass
+a take was played on. If it has already passed, the composition takes over at once (`late_beats` in the reply)
+and the notes that should be holding at that point sound immediately, instead of the take waiting a whole loop.
 Optional `settings` are the layer's Perform settings, as for `loop-step`.
 
 `{"command":"clock"}` reads the beat timeline on its own, cheaply: `bpm`, `beat`,

@@ -241,7 +241,9 @@ class Looper:
         """Replace one layer with a whole composition: chords at beats, each {beat, duration, notes, velocity?}. While
         the loops play it takes over at the next loop boundary, so a pass in progress plays on undisturbed (for
         example a live take of the same music, which the composition then repeats exactly); stopped, at once.
-        Caller holds the lock."""
+        at_beat: the timeline beat to take over at instead (the end of the pass a take was played on). If that has
+        already passed, it takes over at once, sounding the notes that should be held there, rather than a whole
+        loop later. Caller holds the lock."""
         index = integer(request.get('slot'),1,4,'slot')-1
         chords = request.get('chords')
         if not isinstance(chords,list) or not 1 <= len(chords) <= 512:
@@ -263,6 +265,14 @@ class Looper:
             raise ValueError('a layer supports at most 2048 chord notes')
         if self.playing:
             boundary = (math.floor(max(0,self.beat)/self.length)+1)*self.length
+            if request.get('at_beat') is not None:
+                boundary = number(request.get('at_beat'),0,1e9,'at_beat')
+                if boundary <= self.beat:  # late: take over now, not a whole loop later
+                    self.pending_composes.pop(index,None)
+                    self._land(index,entries,config,self.beat)
+                    self._sound_held(index)
+                    return {'slot':index+1,'applies_at_beat':round(self.beat,3),'late_beats':round(self.beat-boundary,3),
+                            'chord_notes':len(entries)}
             self.pending_composes[index] = {'index':index,'chords':entries,'config':config,'at':boundary}  # replaces only this layer's
             return {'slot':index+1,'applies_at_beat':boundary,'chord_notes':len(entries)}
         self._commit(index,entries,config)
@@ -275,10 +285,24 @@ class Looper:
             if self.beat < compose['at']:
                 continue
             del self.pending_composes[index]
-            if self.bus:
-                self.bus.release(compose['index'])
-            self._commit(compose['index'],compose['chords'],compose['config'])
-            self.report({'event':'loop_composed','slot':compose['index']+1,'beat':compose['at']})
+            self._land(index,compose['chords'],compose['config'],compose['at'])
+
+    def _land(self, index, chords, config, beat):
+        """A composition takes over its layer: the old one's notes stop. Caller holds the lock."""
+        if self.bus:
+            self.bus.release(index)
+        self._commit(index,chords,config)
+        self.report({'event':'loop_composed','slot':index+1,'beat':beat})
+
+    def _sound_held(self, index):
+        """Sound a layer's notes that should be holding at the loop's position now (their releases come as usual)."""
+        layer = self.layers[index]
+        if not self.bus or layer['muted'] or self.beat < 0:
+            return
+        position = self.beat % self.length
+        for n in layer['notes']:
+            if n['beat'] <= position < n['beat'] + n['duration']:
+                self.bus.receive(index,[0x90,n['note'],n['velocity']])
 
     def _commit(self, index, chords, config):
         if len(chords) > 2048:
