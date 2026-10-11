@@ -8,17 +8,15 @@ import tarfile
 import xml.etree.ElementTree as ET
 import copy
 
-from .beats import BANK_NAME, catalog, get_beat
-from .drum_song import validate_beat_bank
-from .hydrogen import command_message
+from .beats import BANK_NAME
 from .perform import options, settings
-from .sequencer import demo_session, integer, number
+from .sequencer import NO_DRUMS, demo_session, integer, number, session_drums
 from .service import Transport
 from .control_reference import reference, UI_MAP, BEAT_EDITOR
 from .mixer import MixerAutomation, SCHEMA as MIXER_SCHEMA, parse_set as parse_mixer_set
 
 COMMANDS = ("status", "capabilities", "events", "perform-options", "perform-configure",
-            "perform", "perform-update", "demo", "play", "drums", "beats-list",
+            "perform", "perform-update", "demo", "play", "drums", "beats-list", "chord-voicing", "key-press", "key-release",
             "beats-load", "beats-select", "beats-play", "sound-follow", "stop", "panic", "quit",
             "loop-configure", "loop-start", "loop-record", "loop-cancel", "loop-mute",
             "loop-step", "loop-clear", "loop-undo", "loop-export", "loop-import", "loop-compose",
@@ -27,11 +25,12 @@ COMMANDS = ("status", "capabilities", "events", "perform-options", "perform-conf
 
 
 FX_OFF = {"delay": {"mix": 0.0, "time": 0.375, "feedback": 30.0}, "reverb": {"mix": 0.0, "room": "hall"}}
+DRUM_ACTIONS = ("stop", "mute", "unmute", "panic", "volume", "pattern", "bpm")
 FX_ROOMS = ("small", "medium", "large", "chamber", "hall", "large-hall", "plate", "cathedral")
 
 
 class Controller:
-    def __init__(self, send, report, drums=None, *, drum_bank=None, drum_library=None):
+    def __init__(self, send, report, drums=None, *, drum_library=None):
         self.lock = threading.Lock()
         self.event_lock = threading.Lock()
         self.events = deque(maxlen=256)
@@ -54,11 +53,13 @@ class Controller:
         self.transport = Transport(self.software_send, self.report,
                                    StudioDrums(drums, self.library) if drums is not None else None)
         self.transport.looper.router = self.sounds
+        from .key_press import KeyPress
+        self.key_press = KeyPress(self.sounds.send_layer, self.transport.timeline, self.report)
+        self.chord_voicing = None
         from .play_along import PlayAlong
         self.play_along = PlayAlong(lambda m:self.sounds.send_layer(6,m),self.report)
         self.transport.tempo_sink = self._send_tempo
         self.defaults = settings({})
-        self.bank_path = validate_beat_bank(drum_bank) if drum_bank else None
         self.bank_requested = False
         self.selected_beat = None
         self.drum_state = {"playing_requested": False, "bpm": 96, "volume": .3, "pattern": None}
@@ -94,15 +95,16 @@ class Controller:
                 "midi_clock":self.transport.clock_output.snapshot(),
                 "sound_follow": dict(self.sound_follower.state) if self.sound_follower else {"enabled": False},
                 "key_monitor": dict(self.key_monitor.state) if self.key_monitor else {"enabled": False},
+                "key_press": self.key_press.snapshot(),
+                "chord_voicing": copy.deepcopy(self.chord_voicing),
                 "performance": {"input": live.input_name, "chord_channel": live.chord_channel,
                                 "output_channel": live.output_channel, "settings": {**live.config,"bpm":self.transport.timeline.target_bpm},
                                 "pending_updates": live.updates.qsize()} if live else None,
                 "performance_defaults": dict(self.defaults),
                 "looper": self.transport.looper.snapshot(),
                 "instruments": self.sounds.snapshot(),
-                "hydrogen_enabled": self.transport.drums is not None and getattr(self.transport.drums.client,"native_audio",False) is not True,
                 "drums_enabled": self.transport.drums is not None,
-                "drums": {**self.drum_state, "beat": self.selected_beat, "bank_path": self.bank_path,
+                "drums": {**self.drum_state, "beat": self.selected_beat,
                           "bank_load_requested": self.bank_requested, "confirmed": False,
                           "sequencer": self.transport.drums.snapshot() if self.transport.drums else None},
                 "last_event_id": self.event_id,
@@ -168,13 +170,13 @@ class Controller:
     def _audio_ready(self):
         if self.sounds.host:
             if not self.sounds.healthy():
-                result=self._execute({'command':'pistil-enable'})
+                self._execute({'command':'pistil-enable'})
                 self.report({'event':'audio_recovered','restored':'last saved sound checkpoint'})
             self.sounds.capture()
 
     def _drums(self):
         if self.transport.drums is None:
-            raise ValueError("Hydrogen control requires serve --hydrogen")
+            raise ValueError(NO_DRUMS)
         return self.transport.drums
 
     def _beat(self, identifier):
@@ -182,7 +184,7 @@ class Controller:
         if beat is None:
             raise ValueError("unknown beat; use beats-list")
         if not self.bank_requested:
-            raise ValueError("load the electronic bank with beats-load before selecting a named beat")
+            raise ValueError("load the drum sound rack with beats-load before selecting a named beat")
         return beat
 
     def _resolve_drums(self, value):
@@ -210,6 +212,22 @@ class Controller:
     def _execute(self, request):
         command = request.get("command")
         transport = self.transport
+        if command == 'chord-voicing':
+            from .voicing import set_chord_voicing
+            if set(request) - {'command', 'id', 'value', 'output'}:
+                raise ValueError('chord-voicing fields: value, output')
+            self.chord_voicing = set_chord_voicing(request.get('value'), request.get('output', 'Orchid'))
+            self.report({'event': 'chord_voicing_sent', **self.chord_voicing})
+            return {'status': 'sent', 'chord_voicing': dict(self.chord_voicing)}
+        if command == 'key-press':
+            from .key_press import parse_press
+            spec = parse_press(request)
+            if not self.sounds.healthy():
+                raise ValueError('enable native Pistil audio for key-press')
+            return {'status': 'queued', 'key_press': self.key_press.start(spec)}
+        if command == 'key-release':
+            self.key_press.stop()
+            return {'status': 'ok', 'key_press': self.key_press.snapshot()}
         if command == 'command-help':
             return {'status':'ok','commands':reference(request.get('name')),'ui_map':copy.deepcopy(UI_MAP),'beat_editor':copy.deepcopy(BEAT_EDITOR)}
         if command == 'sounds-list':
@@ -242,6 +260,7 @@ class Controller:
             return {'status':'ok','tempo':transport.timeline.snapshot()}
         if command in ('pause','resume'):
             transport.pause(command=='pause')
+            if command == 'pause': self.key_press.stop()
             # Each transport worker releases its own voices; Play Along stays live.
             return {'status':'ok','tempo':transport.timeline.snapshot()}
         if command == 'play-along':
@@ -271,12 +290,10 @@ class Controller:
             return {"status": "ok", "api_version": 1, "commands": list(COMMANDS), "command_reference": reference(), "ui_map":copy.deepcopy(UI_MAP), "beat_editor":copy.deepcopy(BEAT_EDITOR), **options(),
                     "looper": {"slots": 4, "clear": "loop-clear: slot 1–4, or omit for all; available during playback except an active take; keeps sounds; stop then loop-undo to restore", "bars": [1, 16], "grids": [0, .25, .5, 1], "default_grid": .5, "count_in_beats": [0, 16], "step_notes": "MIDI pitches 0–127", "sound": "independent AU sounds when pistil-enable is active; otherwise shared standalone sound"},
                     "mixer_schema":copy.deepcopy(MIXER_SCHEMA),
-                    "beats": self.library.catalog(), "drum_actions": ["stop", "mute", "unmute",
-                        "panic", "volume", "pattern",
-                        "strip-volume", "strip-pan", "strip-mute-toggle", "strip-solo-toggle"]}
+                    "beats": self.library.catalog(), "drum_actions": list(DRUM_ACTIONS)}
         if command in ('pistil-enable','pistil-status','layer-select','layer-editor','layer-preset'):
             if command == 'pistil-enable':
-                if transport.playing:
+                if transport.playing or self.key_press.snapshot()['status'] in ('queued', 'held'):
                     raise ValueError('stop playback before enabling independent sounds')
                 from .paths import host_path
                 path = host_path()
@@ -319,7 +336,6 @@ class Controller:
                     raise ValueError('settings must be an object')
                 looper.configure(values)
             elif command == "loop-start":
-                from .hydrogen import session_drums
                 config = settings({**self.defaults, **request.get('settings', {})})
                 resolved = self._resolve_drums(request.get('drums'))
                 drum_config = session_drums({'drums':resolved})
@@ -370,7 +386,7 @@ class Controller:
                 return {'status':'ok','document':document}
             elif command == 'loop-import':
                 document = request.get('document')
-                if transport.playing:
+                if transport.playing or self.key_press.snapshot()['status'] in ('queued', 'held'):
                     raise ValueError('stop playback before importing loops and sounds')
                 from .looper import Looper
                 validator = Looper(lambda m: None, lambda e: None)
@@ -494,7 +510,7 @@ class Controller:
                     "confirmation": "poll status or events for perform_updated"}
         elif command == "beats-list":
             return {"status": "ok", "bank": next(iter(self.library.documents.values())).get("bank", BANK_NAME), "beats": self.library.catalog(),
-                    "bank_path": self.bank_path, "load_requested": self.bank_requested}
+                    "load_requested": self.bank_requested}
         elif command == "beats-load":
             drums = self._drums()
             if transport.playing:
@@ -531,7 +547,7 @@ class Controller:
                 self.library.sounds,self.library.kits=old_sounds,old_kits
                 self.library.persist()
                 raise
-            return {'status':'ok' if getattr(drums.client,'native_audio',False) is True else 'sent','kit':kit}
+            return {'status':'ok','kit':kit}
         elif command == 'sound-preview':
             drums=self._drums()
             if transport.playing:
@@ -568,33 +584,36 @@ class Controller:
         elif command == "drums":
             drums = self._drums()
             action = request.get("action")
-            if not isinstance(action, str):
-                raise ValueError("Hydrogen action must be a string")
-            if action == "feedback":
-                return {"status": "observed", "feedback": drums.feedback()}
+            value = request.get("value")
+            if action not in DRUM_ACTIONS:
+                raise ValueError("drums action must be " + ", ".join(DRUM_ACTIONS))
             if action=='bpm':
-                self._set_tempo(request.get('value'));return {'status':'ok','tempo':transport.timeline.snapshot()}
-            if transport.playing and action in { "play", "pause", "stop", "mode", "open-song", "kit"}:
-                raise ValueError("stop the session before changing drum transport, tempo, song or kit")
+                self._set_tempo(value);return {'status':'ok','tempo':transport.timeline.snapshot()}
+            if action == "volume":
+                number(value, 0, 1.5, "volume")
+            elif action == "pattern":
+                integer(value, 0, 9999, "pattern (zero-based)")
+            elif value is not None:
+                raise ValueError(f"{action} does not accept a value")
+            if transport.playing and action == "stop":
+                raise ValueError("stop the session before stopping its drums")
             if action == "panic":
                 drums.panic()
                 self.drum_state["playing_requested"] = False
-                return {"status": "sent", "confirmed": False}
-            command_message(action, request.get("value"), request.get("strip"))
+                return {"status": "ok"}
             if action=='volume':self.mixer.cancel(['drums'])
-            result = drums.command(action, request.get("value"), request.get("strip"))
-            if action=="volume":self.sounds.mix["drums"]["volume"]=request.get("value")
-            if action in ("volume", "bpm", "pattern"):
-                self.drum_state[action] = request.get("value")
+            result = drums.command(action, value)
+            if action=="volume":self.sounds.mix["drums"]["volume"]=value
+            if action in ("volume", "pattern"):
+                self.drum_state[action] = value
             if action == "pattern":
                 self.selected_beat = None
-            if action in ("play", "pause", "stop"):
-                self.drum_state["playing_requested"] = action == "play"
-            if action == "open-song":
-                self.bank_requested, self.selected_beat = False, None
+            if action == "stop":
+                self.drum_state["playing_requested"] = False
             return result
         elif command in ("stop", "panic", "quit"):
             self.mixer.cancel()
+            self.key_press.stop()
             (transport.panic if command in ("panic", "quit") else transport.stop)()
             with self.play_along.voice_lock:
                 try:self.play_along.panic()
@@ -612,6 +631,7 @@ class Controller:
         with self.lock:
             self.mixer.cancel()
             self.closed.set()
+            self.key_press.stop()
             if self.midi_connection:self.midi_connection.close()
             self.play_along.stop()
             if self.sound_follower:

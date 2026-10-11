@@ -9,7 +9,7 @@ of Orchid's factory algorithms or Pattern bank.
 Orchid Studio owns BPM. Only the explicitly selected raw Chord input channel feeds
 this engine; Performed, Bass and hardware clock/transport are ignored. Generated
 notes go exclusively through `Orchid Studio Playback` to Pistil. No notes are sent
-back into Orchid. Hydrogen still has an independent clock (see below).
+back into Orchid. Native drums follow the same beat timeline (see below).
 
 ## Setup and API
 
@@ -19,7 +19,8 @@ when configuration changes. Raw chord note-ons were observed together on channel
 3 in a fresh passive capture. Keep Orchid's physical volume down to avoid hearing
 its local synth alongside Pistil; software routing does not mute its speaker.
 
-Start `orchid-studio serve --hydrogen`. In Pistil's Audio/MIDI Settings select only
+Start `orchid-studio serve` (add `--pistil-host` for Studio's own Pistil voices
+and drums). For standalone Pistil, in its Audio/MIDI Settings select only
 `Orchid Studio Playback` for this route. Preserve the current patch and laptop
 output. Reconnect that input after restarting the service. Send separate JSON lines:
 
@@ -102,11 +103,9 @@ for a mode change. Velocity-limit changes apply to future attacks. Missed arp
 steps are skipped; sweep/pattern attacks over 50 ms late are dropped to avoid a
 burst after a scheduler stall. Python/OS scheduling is not sample-accurate.
 
-Optional top-level `"drums":{"engine":"hydrogen","pattern":0,"volume":0.3}`
-starts the loaded Hydrogen pattern at the same BPM; live BPM updates also send its
-new tempo. This is coordinated tempo/transport over OSC, not phase-locked shared
-transport. Shared clock integration with Hydrogen and simultaneous live looping
-remain separate work.
+Optional top-level `"drums":{"engine":"studio","beat":"glass-house","volume":0.3}`
+plays a Studio beat from Perform's own beat position in the native audio host
+(`--pistil-host`); live BPM updates move both.
 
 ## Reproducible listening tour
 

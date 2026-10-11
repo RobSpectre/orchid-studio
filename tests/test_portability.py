@@ -79,7 +79,6 @@ class PortabilityTests(unittest.TestCase):
     def test_native_host_can_load_empty_rack_without_hydrogen(self):
         with tempfile.TemporaryDirectory() as folder:
             library=DrumLibrary(folder)
-            library.ensure_stock=Mock(side_effect=AssertionError('Must not require Hydrogen'))
             router=Mock()
             self.assertEqual(NativeDrumAudio(router,library).load()['sounds'],0)
             router.host.call.assert_called_once_with('drum-load',sounds=[])

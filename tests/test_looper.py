@@ -169,3 +169,18 @@ class ComposeTests(unittest.TestCase):
                     {'slot':1,'chords':[{'beat':0,'notes':[]}]}):
             with self.assertRaises(ValueError):l.edit('compose',bad)
 
+    def test_each_layer_keeps_its_own_pending_composition_and_a_recompose_replaces_only_that_layers(self):
+        events=[];l=Looper(lambda m:None,events.append)
+        l.configure({'bars':4})
+        playing=Mock();playing.is_alive.return_value=True;l.worker=playing;l.beat=5.5
+        self.assertEqual(l.snapshot()['pending_composes'],[])
+        l.edit('compose',{'slot':3,'chords':[{'beat':0,'notes':[60]}]})
+        l.edit('compose',{'slot':1,'chords':[{'beat':0,'notes':[48]}]})
+        l.edit('compose',{'slot':3,'chords':[{'beat':4,'notes':[67]}]})  # same layer, same pass: replaces its own
+        self.assertEqual(l.snapshot()['pending_composes'],[1,3])
+        l.beat=16.0;l._land_compose()
+        self.assertEqual([c['note'] for c in l.layers[0]['chords']],[48])
+        self.assertEqual([(c['beat'],c['note']) for c in l.layers[2]['chords']],[(4,67)])
+        self.assertEqual(events,[{'event':'loop_composed','slot':1,'beat':16},{'event':'loop_composed','slot':3,'beat':16}])
+        self.assertEqual(l.snapshot()['pending_composes'],[])
+

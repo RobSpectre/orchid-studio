@@ -85,9 +85,8 @@ contains no supplied songs, sample audio, user patch states or Pistil binary.
 ## Fresh drum library
 
 The host loads successfully with zero samples, so Pistil is usable before kit
-installation. Import one-shot PCM WAVs through Sound library or Hydrogen kit
-folders/`.h2drumkit` files through `kits-import`. Stop transport first. No running
-Hydrogen process is needed. Native playback supports one sample per instrument;
+installation. Import one-shot PCM WAVs through Sound library or Hydrogen-format kit
+folders/`.h2drumkit` files through `kits-import`. Stop transport first. Native playback supports one sample per instrument;
 bake pitch offsets into the sample before import. See [DRUM_STUDIO.md](DRUM_STUDIO.md).
 
 The original TR808-based beat documents require TR808EmulationKit. Circuitry and

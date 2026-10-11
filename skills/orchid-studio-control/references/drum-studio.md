@@ -1,7 +1,8 @@
 # Studio drum machine
 
-Studio now sequences and plays drum samples itself on macOS. Hydrogen is a source
-of kits, not a live playback dependency when the native host is enabled.
+Studio sequences and plays drum samples itself on macOS, in its native audio
+host. Kits can be imported from the Hydrogen kit format; no Hydrogen application
+is involved in playback.
 
 ```sh
 scripts/build-pistil-host-macos.sh
@@ -45,12 +46,12 @@ This Mac has 87 imported sounds across four kits:
 
 | Kit | Sounds | Source metadata |
 | --- | ---: | --- |
-| TR808EmulationKit | 16 | ArtemioLabs, GPL; installed with Hydrogen |
+| TR808EmulationKit | 16 | ArtemioLabs, GPL; Hydrogen-format kit |
 | ElectricEmpireKit | 32 | ArtemioLabs, GPL |
 | VariBreaks | 16 | Sineshine, GPL |
 | Orchid Circuitry | 23 | Frequency 303 / Allan Legemaate, CC0; Studio edits |
 
-Electronic kits come from Hydrogen's [official catalog](https://github.com/hydrogen-music/hydrogen-music/blob/main/feeds/drumkit_list.php).
+Electronic kits come from the Hydrogen project's [kit catalog](https://github.com/hydrogen-music/hydrogen-music/blob/main/feeds/drumkit_list.php).
 Downloaded archives live in `local/drum-downloads/`; extracted samples, metadata
 and author/license fields remain in the gitignored local library. The current
 12 arrangements use the new Circuitry kit with distinct indie breaks, micro-house
@@ -59,11 +60,11 @@ packs, reproducible import and each groove’s suggested tempo. The original 808
 arrangements remain the fallback when the new kit is absent.
 
 **Add WAV sound…** imports a one-shot mono/stereo PCM WAV (up to 8 MB and 30 s).
-Use **Installed kits & import** for a local Hydrogen kit directory or `.h2drumkit`
-archive. Stop playback to import. Archive traversal, links and oversized archives
+Use **Installed kits & import** for a local Hydrogen-format kit directory (with
+`drumkit.xml`) or `.h2drumkit` archive. Stop playback to import. Archive traversal, links and oversized archives
 are rejected. Sound decoding is transactional: an unsupported kit leaves the
 old native bank intact. The current sampler supports single-sample instruments
-without Hydrogen-only pitch/FX processing, 92 loaded sounds, 128 simultaneous
+without per-instrument pitch/FX processing, 92 loaded sounds, 128 simultaneous
 voices and five minutes of decoded sample material. It decodes WAV and FLAC
 through Apple's audio libraries and converts into the engine sample rate.
 Samples retain their source licenses; a kit import does not change those terms.
@@ -88,8 +89,8 @@ Use `capabilities`, `beats-list`, `kits-list`, and `status` for discovery.
 `beat-save` supports up to 32 lanes and 8192 hits, unique lane/position pairs,
 0–0.45 swing, 0.01–1 hit velocity, 0–1 hit probability and 0–1.5 lane gain. Hit
 positions are quarter-note beats, so `.25` is a sixteenth note. All twelve source
-beats remain 48 beats long. Engine `hydrogen` is accepted as a legacy alias;
-`status.drums.sequencer.renderer` identifies the actual renderer.
+beats remain 48 beats long. The drums `engine` is `studio`;
+`status.drums.sequencer.renderer` reports `studio-native`.
 
 `pistil-status.host.drums` reports loaded sounds, rendered attacks, late attacks,
 maximum render lateness and signal peak. Lateness measures the drum callback
@@ -97,10 +98,7 @@ against requested host-clock deadlines, not perceived timing between instruments
 `status.drums.sequencer` reports active/pending beat, switch boundary, sent hits
 and skipped stale hits. No late-hit burst is emitted after a stalled scheduler.
 
-Native drums require the macOS host. The optional `--hydrogen` adapter remains
-available for standalone fallback and source-kit diagnostics; its new Studio
-sequencer triggers individual OSC notes with Hydrogen's transport stopped.
-That fallback still has separate audio output and is not the preferred path.
+Drums require the native macOS host (`serve --pistil-host`, or `pistil-enable`).
 Linux native sample-host support is not implemented.
 
 ## MIDI clock for other software and gear

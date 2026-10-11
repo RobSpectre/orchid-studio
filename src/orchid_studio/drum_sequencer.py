@@ -1,4 +1,4 @@
-"""Beat-position-driven drum scheduling. Hydrogen renders hits, never runs its transport."""
+"""Beat-position-driven drum scheduling. Studio's native sampler renders each hit on Studio's timeline."""
 import copy
 import math
 import random
@@ -26,14 +26,9 @@ class StudioDrums:
         self.rng = random.Random(0)
 
     def load(self):
-        if getattr(self.client, 'native_audio', False) is True:
-            result=self.client.load()
-            self.loaded=True
-            return result
-        path = self.library.rack()
-        result = self.client.command('open-song', path)
-        self.loaded = True
-        return {**result, 'path':path}
+        result=self.client.load()
+        self.loaded=True
+        return result
 
     def prepare(self, config):
         if not self.loaded:
@@ -135,17 +130,12 @@ class StudioDrums:
             catalog=self.library.catalog()
             index=integer(value,0,len(catalog)-1,'pattern')
             return self.select(catalog[index]['id'])
-        if action in ('play','mode','loop','kit','open-song'):
-            raise ValueError('Studio owns drum playback; use beats-play, beats-load or kits-import')
         if action in ('stop','pause'):
             self.stop();return {'status':'ok'}
         if action=='bpm':
             self.bpm=number(value,30,300,'bpm')
             return {'status':'ok'}
         return self.client.command(action,value,strip)
-
-    def feedback(self, *args):
-        return self.client.feedback(*args)
 
     def stop(self):
         with self.lock:
@@ -159,7 +149,7 @@ class StudioDrums:
 
     def snapshot(self):
         with self.lock:
-            return {'clock':'studio', 'renderer':'studio-native' if getattr(self.client,'native_audio',False) is True else 'hydrogen-osc', 'running':self.running,'position':max(0,self.previous),
+            return {'clock':'studio', 'renderer':'studio-native', 'running':self.running,'position':max(0,self.previous),
                     'loop_bars':self.loop_bars, 'bars':self.document['bars'] if self.document else None,
                     'anchor':self.anchor, 'document':copy.deepcopy(self.document),
                     'pending_bars':self.pending[1]['bars'] if self.pending else None,

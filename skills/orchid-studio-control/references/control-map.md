@@ -365,6 +365,30 @@ Read recorded key presses, releases and voicing-dial clicks after a cursor.
 
 **Behavior:** Read-only. press: t (time.monotonic), root, name, octave, notes, intervals, velocity, beat; release: held_s; voicing: value, delta. Compare names, not note numbers
 
+### chord-voicing
+
+Set Orchid hardware chord voicing with the researched bounded SysEx setter.
+
+**Fields:** value: integer 1–60; output?: exact Orchid hardware MIDI port, default Orchid
+
+**Behavior:** One-shot hardware output, not CC115 or a software inversion. Returns sent and confirmed:false; status.chord_voicing is last sent, not readback. Does not alter key_monitor.last_voicing.
+
+### key-press
+
+Play one software key for a musical duration using orchid-robot score notation.
+
+**Fields:** key: C/C#/D/D#/E/F/F#/G/G#/A/A#/B; duration?: string, default 1/8; octave?: -1–9, default 4 (result must fit MIDI 0–127); velocity?:1–127, default 64; slot?:1–6, default 6
+
+**Behavior:** Native host; direct note on MIDI channel 16. One API key at a time; returns queued with press_id. Duration: 1/4, 1/8., 1/4t, w/h/q/e/s, 2bars, 1.5bars, ties 1bar+1/4. Studio BPM; immediate start; no Perform/chord generation or hardware key actuation. Poll status.key_press/events; key-release, Stop/panic/quit and transport pause cancel. Keep channel 16 free on the target slot.
+
+### key-release
+
+Cancel the current API key and release its note and pedals.
+
+**Fields:** none
+
+**Behavior:** Idempotent; does not stop loops, drums or physical input. status.key_press reports released/error; events report key_released/key_press_error.
+
 ### sound-follow
 
 Enable/disable fresh hardware Sound-report following.
@@ -455,7 +479,7 @@ List available sounds, kits and provenance.
 
 ### kits-import
 
-Import local Hydrogen-compatible kit/archive.
+Import a local Hydrogen-format kit directory or .h2drumkit archive.
 
 **Fields:** path: local directory or archive
 
@@ -479,11 +503,11 @@ Play one drum sample.
 
 ### drums
 
-Drum volume and legacy backend actions.
+Native drum volume, mute and pattern controls.
 
-**Fields:** action; value?; strip?; see capabilities.drum_actions
+**Fields:** action: stop / mute / unmute / panic / volume / pattern / bpm; value?: volume 0–1.5, pattern index, or bpm
 
-**Behavior:** Prefer mixer-set for native volume/pan and Studio transport commands
+**Behavior:** Prefer mixer-set for volume/pan and Studio transport commands
 
 ## Drum draft operations
 
@@ -513,7 +537,7 @@ Use the returned `document` as input for later edits and `beat-save`. For a step
 
 - The Studio API covers its controls and musical effects. Browser navigation, cursor positions, visual rendering, local file saving and unsaved draft history are client operations with the equivalents above.
 - `layer-editor` opens the Pistil plugin. Individual controls inside the vendor plugin are not Studio API parameters; use Computer Use for them. This audit does not claim full Pistil synthesis-parameter automation.
-- The API does not expose Orchid firmware/maintenance, sending physical key presses or arbitrary hardware MIDI output. `key-events` only reports key presses Orchid sent. Studio is the clock master.
+- `chord-voicing` sends only the researched bounded hardware voicing setter. No firmware/maintenance, physical key actuation or arbitrary hardware MIDI output. `key-press` generates a timed software note; `key-events` reports physical input only. Studio is the clock master.
 - Six AU slots: loops 1–4, Perform 5, Play Along 6. Mixer keys use `live` for Perform and `play-along` for the direct voice.
 - Save the complete `loop-export.document` before restarting. Samples and supplied song MIDI live separately under ignored `local/`; exports do not bundle those files.
 - Set exact physical input and raw chord channel: this device was confirmed Performed 1, Bass 2, Chord 3. Never merge all streams.

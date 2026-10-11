@@ -44,6 +44,9 @@ ROWS = {
  'play-along':('Enable/configure the sixth direct-play voice.','enabled:boolean; input?:exact name; chord_channel?:1–16; velocity_limit?:1–127','Native host; plays whenever enabled, including while stopped or paused. Stop/panic release held notes and pedals; fresh keys still play.'),
  'key-monitor':('Enable/disable the read-only record of Orchid key presses and voicing-dial clicks.','enabled?:boolean; input:exact name when enabling; chord_channel?:1-16, default 3','Opens an input only; independent of note routes. Starts with --sound-input'),
  'key-events':('Read recorded key presses, releases and voicing-dial clicks after a cursor.','after?: id, default 0','Read-only. press: t (time.monotonic), root, name, octave, notes, intervals, velocity, beat; release: held_s; voicing: value, delta. Compare names, not note numbers'),
+ 'chord-voicing':('Set Orchid hardware chord voicing with the researched bounded SysEx setter.','value: integer 1–60; output?: exact Orchid hardware MIDI port, default Orchid','One-shot hardware output, not CC115 or a software inversion. Returns sent and confirmed:false; status.chord_voicing is last sent, not readback. Does not alter key_monitor.last_voicing.'),
+ 'key-press':('Play one software key for a musical duration using orchid-robot score notation.','key: C/C#/D/D#/E/F/F#/G/G#/A/A#/B; duration?: string, default 1/8; octave?: -1–9, default 4 (result must fit MIDI 0–127); velocity?:1–127, default 64; slot?:1–6, default 6','Native host; direct note on MIDI channel 16. One API key at a time; returns queued with press_id. Duration: 1/4, 1/8., 1/4t, w/h/q/e/s, 2bars, 1.5bars, ties 1bar+1/4. Studio BPM; immediate start; no Perform/chord generation or hardware key actuation. Poll status.key_press/events; key-release, Stop/panic/quit and transport pause cancel. Keep channel 16 free on the target slot.'),
+ 'key-release':('Cancel the current API key and release its note and pedals.','none','Idempotent; does not stop loops, drums or physical input. status.key_press reports released/error; events report key_released/key_press_error.'),
  'sound-follow':('Enable/disable fresh hardware Sound-report following.','enabled?:boolean; input:exact name when enabling','Independent of note routes; next fresh dial movement updates selected slot plus slot 6'),
  'clock-configure':('Configure virtual MIDI clock publication.','enabled:boolean; offset_ms?:0–500','Stop transport first; 24 PPQN, Start/Stop/Continue, no hardware feedback'),
  'beats-list':('List drum arrangements, suggested tempos, vibe/tags, energy/density and best uses.','none','Read-only'),
@@ -55,10 +58,10 @@ ROWS = {
  'beat-edit':('Transform a draft without saving: clone/new, rename, resize, swing, lanes, steps and bars.','document OR beat: source; action: capabilities.beat_editor.actions; action-specific fields in beat_editor','Returns document + undo_document; no library/playback mutation until beat-save'),
  'beat-save':('Validate/persist a beat document; also imports beat JSON.','document: orchid-beat version 1','Selected playing beat updates next bar; clone ID to preserve original'),
  'kits-list':('List available sounds, kits and provenance.','none','Read-only'),
- 'kits-import':('Import local Hydrogen-compatible kit/archive.','path: local directory or archive','Stop playback; single-sample unpitched kits'),
+ 'kits-import':('Import a local Hydrogen-format kit directory or .h2drumkit archive.','path: local directory or archive','Stop playback; single-sample unpitched kits'),
  'sample-upload':('Import a local PCM WAV as a drum sound.','name; data:base64 WAV; license?:text','Stop playback; <=8 MiB WAV and <=30 seconds'),
  'sound-preview':('Play one drum sample.','sound: sample ID','Stop transport; native rack must be loaded'),
- 'drums':('Drum volume and legacy backend actions.','action; value?; strip?; see capabilities.drum_actions','Prefer mixer-set for native volume/pan and Studio transport commands'),
+ 'drums':('Native drum volume, mute and pattern controls.','action: stop|mute|unmute|panic|volume|pattern|bpm; value?: volume 0–1.5, pattern index, or bpm','Prefer mixer-set for volume/pan and Studio transport commands'),
 }
 
 UI_MAP = {

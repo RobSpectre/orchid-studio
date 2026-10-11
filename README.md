@@ -2,7 +2,7 @@
 
 A software performance studio for **Telepathic Orchid + Pistil**: four loop layers,
 two live voices, an editable sample drum machine, and one shared tempo and clock.
-No GarageBand, DAW or running Hydrogen instance is required.
+No GarageBand, DAW or separate drum application is required.
 
 ```text
 Orchid USB MIDI (raw Chord channel)
@@ -35,10 +35,10 @@ actual MIDI input name. Confirm Orchid's **raw Chord** channel on the instrument
 monitoring the same notes through Pistil standalone at the same time.
 
 A fresh install has no licensed samples or supplied song MIDI. Pistil can start
-with an empty sample rack. Import your own WAVs/Hydrogen kits in **Sound library**,
+with an empty sample rack. Import your own WAVs/Hydrogen-format kits in **Sound library**,
 or restore a private transfer bundle to bring over your existing sounds and beats.
 Turn off **Start drums with loops** until the selected beat's samples are present.
-Factory beat JSON is included; samples are not. A Hydrogen installation is not required.
+Factory beat JSON is included; samples are not.
 
 ## Move your existing Studio to another Mac
 

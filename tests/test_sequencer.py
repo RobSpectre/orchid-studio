@@ -145,5 +145,24 @@ class CLITests(unittest.TestCase):
                 exact_port(ports, "A")
 
 
+class LayerLoopTests(unittest.TestCase):
+    def test_layer_loops_expand_separately(self):
+        session = {"version": 1, "bpm": 96, "length_beats": 8, "tracks": [
+            {"name": "performed", "channel": 1, "loop_beats": 4,
+             "notes": [{"beat": 0, "duration": 1, "note": 60}]},
+            {"name": "bass", "channel": 2, "loop_beats": 2,
+             "notes": [{"beat": 0, "duration": 1, "note": 36}]},
+        ]}
+        events, *_ = compile_session(session, repeats=2, transpose=2)
+        performed = [e for e in events if e.track == "performed" and e.message[0] == 0x90]
+        bass = [e for e in events if e.track == "bass" and e.message[0] == 0x91]
+        self.assertEqual([e.beat for e in performed], [0, 4, 8, 12])
+        self.assertEqual([e.beat for e in bass], list(range(0, 16, 2)))
+        self.assertEqual(bass[0].message[1], 38)
+        session["tracks"][0]["loop_beats"] = 3
+        with self.assertRaises(ValueError):
+            compile_session(session)
+
+
 if __name__ == "__main__":
     unittest.main()

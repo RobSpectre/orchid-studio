@@ -26,15 +26,6 @@ def catalog():
             for i, s in enumerate(_SPECS)]
 
 
-def get_beat(identifier):
-    if not isinstance(identifier, str):
-        raise ValueError("beat must be a catalog ID")
-    for beat in catalog():
-        if beat["id"] == identifier:
-            return beat
-    raise ValueError("unknown beat; use beats-list for available IDs")
-
-
 def patterns():
     result = []
     for index, (_, name, genre, bpm, kicks) in enumerate(_SPECS):

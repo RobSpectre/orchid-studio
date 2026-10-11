@@ -161,7 +161,6 @@ class NativeBackendTests(unittest.TestCase):
         from orchid_studio.drum_audio import NativeDrumAudio
         with tempfile.TemporaryDirectory() as folder:
             library=DrumLibrary(folder)
-            library.ensure_stock=Mock()
             library.sounds={'hit':{'id':'hit','name':'Hit','kit':'local','instrument':'<instrument><volume>0.5</volume><filename>/tmp/hit.wav</filename></instrument>'}}
             router=Mock();router.host.error=None;backend=NativeDrumAudio(router,library)
             self.assertEqual(backend.load()['engine'],'studio-native')
@@ -177,7 +176,7 @@ class NativeBackendTests(unittest.TestCase):
     def test_native_rejects_unsupported_kit_before_replacing_audio_bank(self):
         from orchid_studio.drum_audio import NativeDrumAudio
         with tempfile.TemporaryDirectory() as folder:
-            library=DrumLibrary(folder);library.ensure_stock=Mock()
+            library=DrumLibrary(folder)
             library.sounds={'hit':{'id':'hit','name':'Hit','instrument':'<instrument><layer><filename>/tmp/a.wav</filename></layer><layer><filename>/tmp/b.wav</filename></layer></instrument>'}}
             router=Mock();router.host.error=None;backend=NativeDrumAudio(router,library)
             with self.assertRaises(ValueError):backend.load()
@@ -186,7 +185,7 @@ class NativeBackendTests(unittest.TestCase):
     def test_api_kit_failure_rolls_back_library_and_native_bank(self):
         from orchid_studio.api import Controller
         with tempfile.TemporaryDirectory() as folder:
-            library=DrumLibrary(folder);library.ensure_stock=Mock()
+            library=DrumLibrary(folder)
             c=Controller(lambda m:None,lambda e:None,drums=Mock(),drum_library=library)
             c.transport.drums.load=Mock(side_effect=ValueError('unsupported format'))
             def fail_import(path):

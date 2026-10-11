@@ -2,7 +2,7 @@
   "version": 1,
   "bpm": 96,
   "length_beats": 16,
-  "drums": {"engine": "hydrogen", "pattern": 0, "volume": 0.3},
+  "drums": {"engine": "studio", "pattern": 0, "volume": 0.3},
   "tracks": [
     {
       "name": "performed",

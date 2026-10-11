@@ -1,7 +1,7 @@
 """Original 12-bar indietronica arrangements for the optional CC0 Circuitry kit.
 
 No sampled songs or transcribed artist patterns. Stable IDs preserve selections.
-Legacy Hydrogen/808 exports remain in beats.py; these are native Studio documents.
+The factory TR-808 arrangements live in beats.py; these are native Studio documents.
 """
 from .beats import catalog
 

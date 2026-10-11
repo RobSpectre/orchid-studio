@@ -43,6 +43,23 @@ def demo_session():
     }
 
 
+NO_DRUMS = "drums need Studio's native audio host; start serve with --pistil-host or send pistil-enable"
+
+
+def session_drums(session):
+    """Validate a session's optional drums object for Studio's native drum sampler."""
+    drums = session.get("drums")
+    if drums is None:
+        return None
+    if not isinstance(drums, dict) or set(drums) - {"engine", "pattern", "volume"}:
+        raise ValueError("drums must contain engine, pattern and optional volume")
+    if drums.get("engine") != "studio":
+        raise ValueError("drums.engine must be studio")
+    pattern = integer(drums.get("pattern"), 0, 9999, "drums.pattern")
+    volume = number(drums.get("volume", 0.3), 0, 1.5, "drums.volume")
+    return {"engine": "studio", "pattern": pattern, "volume": volume}
+
+
 def compile_session(session, *, transpose=0, repeats=1, bpm=None):
     """Validate the entire clip before opening any output, then schedule notes.
 

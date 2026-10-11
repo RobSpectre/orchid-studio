@@ -1,4 +1,4 @@
-"""Editable beat documents and a local, mixed Hydrogen sound rack.
+"""Editable beat documents and a local, mixed sound rack built from Hydrogen-format kits.
 
 Samples stay local, with source author/license metadata. No hardware MIDI output.
 """
@@ -172,17 +172,6 @@ class DrumLibrary:
         if not target.exists():shutil.copyfile(path,target)
         return str(target.resolve())
 
-    def materialize(self):
-        # Copy only the chosen audio assets, retaining source/license metadata.
-        updated=copy.deepcopy(self.sounds)
-        for sound in updated.values():
-            instrument=ET.fromstring(sound['instrument'])
-            for f in instrument.iter('filename'):
-                f.text=self.local_sample(f.text)
-            sound['instrument']=ET.tostring(instrument,encoding='unicode')
-        self.sounds=updated
-        self.persist()
-
     def import_kit(self, path):
         path = Path(path).expanduser().resolve()
         if path.is_file() and path.suffix == '.h2drumkit':
@@ -264,39 +253,6 @@ class DrumLibrary:
         for k,v in {'filename':'sample.wav','min':0,'max':1,'gain':1,'pitch':0}.items():put(layer,k,v)
         ET.ElementTree(kit).write(folder/'drumkit.xml')
         return self.import_kit(folder)
-
-    def ensure_stock(self):
-        if any(k['id']=='tr808emulationkit' for k in self.kits):return
-        candidates=[Path('/Applications/Hydrogen.app/Contents/Resources/data/drumkits/TR808EmulationKit'),
-                    Path('/usr/share/hydrogen/data/drumkits/TR808EmulationKit')]
-        for path in candidates:
-            if (path/'drumkit.xml').is_file():
-                self.import_kit(path);return
-        raise ValueError('import the TR808EmulationKit directory with kits-import first')
-
-    def rack(self):
-        self.ensure_stock()
-        song=ET.Element('song')
-        for k,v in {'version':'1.2.0','name':'Orchid Studio Sound Rack','bpm':124,'volume':.3,
-                    'mode':'pattern','loopEnabled':'false','isMuted':'false','humanize_time':0,
-                    'humanize_velocity':0,'swing_factor':0,'metronomeVolume':0}.items():put(song,k,v)
-        components=ET.SubElement(song,'componentList');component=ET.SubElement(components,'drumkitComponent')
-        for k,v in {'id':0,'name':'Main','volume':1}.items():put(component,k,v)
-        instruments=ET.SubElement(song,'instrumentList')
-        for i,s in enumerate(self.sounds.values()):
-            ins=ET.fromstring(s['instrument'])
-            # Keep all sounds loaded together. Equal note/index mapping works in both Hydrogen map modes.
-            for k,v in {'id':i,'name':s['name'],'midiOutChannel':-1,'midiOutNote':36+i,
-                        'isMuted':'false','isSoloed':'false','muteGroup':-1}.items():put(ins,k,v)
-            for component in ins.findall('instrumentComponent'):put(component,'component_id',0)
-            instruments.append(ins)
-        p=ET.SubElement(ET.SubElement(song,'patternList'),'pattern')
-        put(p,'name','Studio schedules every hit');put(p,'size',192);put(p,'denominator',4)
-        ET.SubElement(p,'noteList');ET.SubElement(song,'patternSequence')
-        for tag in ('virtualPatternList','ladspa','BPMTimeLine','tagTimeLine'):ET.SubElement(song,tag)
-        path=self.root/'studio-rack.h2song'
-        atomic(path,ET.tostring(song,encoding='unicode'))
-        return str(path.resolve())
 
     def sound_list(self):
         return [{k:v for k,v in s.items() if k!='instrument'} for s in self.sounds.values()]

@@ -61,8 +61,7 @@ documents and session are in `local/indie-bank-backup/`.
 
 On new library construction, Circuitry factory arrangements are used only when
 all required sounds are installed. Saved user documents override factory defaults.
-Without the pack, the old 808 bank remains available; legacy Hydrogen song export
-still produces the old 808 arrangements.
+Without the pack, the old 808 bank remains available.
 
 Local review renders are in `local/circuitry-previews/`: all 12 full arrangements
 plus `three-grooves.wav` (Subway Steps, Velvet Floor, Prism Lift). These are offline
