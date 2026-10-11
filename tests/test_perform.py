@@ -2,13 +2,13 @@ import threading
 import unittest
 from unittest.mock import Mock, patch
 
-from orchid_studio.perform import Arpeggiator, LivePerformance, settings
+from orchid_studio.perform import PerformanceEngine, LivePerformance, settings
 
 
 class PerformTests(unittest.TestCase):
     def engine(self, **settings):
         sent = []
-        return Arpeggiator(sent.append, 3, 1, {"bpm": 120, "chord_window_ms": 0, **settings}), sent
+        return PerformanceEngine(sent.append, 3, 1, {"bpm": 120, "chord_window_ms": 0, **settings}), sent
 
     def chord(self, engine):
         for pitch in (60, 64, 67):
@@ -233,7 +233,7 @@ class PerformTests(unittest.TestCase):
             if message[0] == 144:
                 raise RuntimeError("disconnected")
             sent.append(message)
-        e = Arpeggiator(send, 3, 1, {"mode": "off", "chord_window_ms": 0})
+        e = PerformanceEngine(send, 3, 1, {"mode": "off", "chord_window_ms": 0})
         self.chord(e)
         with self.assertRaises(RuntimeError):
             e.advance(0)

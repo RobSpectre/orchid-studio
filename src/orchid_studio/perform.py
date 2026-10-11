@@ -292,10 +292,6 @@ class PerformanceEngine:
             self.voices.clear()
 
 
-# Compatibility for clients using the initial arpeggiator API.
-Arpeggiator = PerformanceEngine
-
-
 class LivePerformance:
     def __init__(self, send, report, stop_event, *, input_name, chord_channel,
                  output_channel=1, config=None, drums=None, drum_config=None):

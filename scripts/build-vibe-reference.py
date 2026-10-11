@@ -1,7 +1,7 @@
 """Generate the Many Rooms vibe guide and portable beat JSON from runtime data."""
 import json
 from pathlib import Path
-from orchid_studio.vibe_beats import documents, BANK
+from orchid_studio.vibe_beats import documents
 root=Path(__file__).resolve().parents[1]
 lines=['# Many Rooms — 12 additional electronic vibes','',
 'Twelve original 12-bar (48-beat), 4/4 arrangements. Adds to the existing Circuitry bank; no existing beat IDs are replaced. Descriptions express composition intent, not a claim of listener approval.','',

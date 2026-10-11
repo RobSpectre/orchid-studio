@@ -8,7 +8,7 @@ import tarfile
 import xml.etree.ElementTree as ET
 import copy
 
-from .beats import BANK_NAME, catalog, get_beat
+from .beats import BANK_NAME
 from .drum_song import validate_beat_bank
 from .hydrogen import command_message
 from .perform import options, settings
@@ -173,7 +173,7 @@ class Controller:
     def _audio_ready(self):
         if self.sounds.host:
             if not self.sounds.healthy():
-                result=self._execute({'command':'pistil-enable'})
+                self._execute({'command':'pistil-enable'})
                 self.report({'event':'audio_recovered','restored':'last saved sound checkpoint'})
             self.sounds.capture()
 

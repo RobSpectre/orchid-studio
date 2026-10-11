@@ -1,7 +1,7 @@
 """Pure drum-editor operations shared by API clients; saving is explicit."""
 import copy
 from .drum_library import validate
-from .sequencer import integer, number
+from .sequencer import integer
 
 ACTIONS=('clone','new','rename','resize','swing','lane-add','lane-set','step','clear-bar','copy-bar','repeat-bar')
 

@@ -172,17 +172,6 @@ class DrumLibrary:
         if not target.exists():shutil.copyfile(path,target)
         return str(target.resolve())
 
-    def materialize(self):
-        # Copy only the chosen audio assets, retaining source/license metadata.
-        updated=copy.deepcopy(self.sounds)
-        for sound in updated.values():
-            instrument=ET.fromstring(sound['instrument'])
-            for f in instrument.iter('filename'):
-                f.text=self.local_sample(f.text)
-            sound['instrument']=ET.tostring(instrument,encoding='unicode')
-        self.sounds=updated
-        self.persist()
-
     def import_kit(self, path):
         path = Path(path).expanduser().resolve()
         if path.is_file() and path.suffix == '.h2drumkit':

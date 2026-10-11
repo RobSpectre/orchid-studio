@@ -4,7 +4,7 @@ import json
 import threading
 import time
 
-from .sequencer import Player, compile_session, demo_session
+from .sequencer import Player, compile_session
 from .hydrogen import command_message, session_drums
 
 
