@@ -101,15 +101,12 @@ and [drum editor guide](docs/DRUM_STUDIO.md).
 python3 -m venv .venv
 .venv/bin/python -m pip install -e '.[midi]'
 .venv/bin/python -m unittest discover -s tests -v
-node --test tests/test_studio_shortcuts.cjs
+node --test tests/*.cjs
 .venv/bin/orchid-studio build-host
 ```
 
 Python tests and browser shortcut tests do not require a plugin or attached Orchid.
-The native host build requires macOS and Apple's developer tools. The [CI template](scripts/ci-workflow.yml) covers Python, JavaScript, packaging and
-native compilation; it is not active until copied to `.github/workflows/ci.yml`
-using a GitHub credential with workflow permission. Proprietary plugin audio
-cannot run in CI.
+The native host build requires macOS and Apple's developer tools.
 The wheel includes web assets and Swift source, so it also works outside a source checkout.
 See [contribution notes](CONTRIBUTING.md).
 

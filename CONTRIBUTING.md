@@ -1,7 +1,7 @@
 # Contributing
 
 Use Python 3.10+ and an editable `.[midi]` install. Run the Python unittest suite
-and `node --test tests/test_studio_shortcuts.cjs` before a change. Native hosting
+and `node --test tests/*.cjs` before a change. Native hosting
 uses the bundled Swift sources in `src/orchid_studio/native/`; compile on macOS
 with `orchid-studio build-host`. Tests must not require purchased plugin binaries.
 
@@ -24,7 +24,3 @@ Keep performed/bass/raw-chord input separate. Software tempo remains master;
 no hardware feedback route or firmware work is part of Studio. Read `AGENTS.md`
 for project constraints. If reporting audio behavior, distinguish dispatch timing,
 render counters and actual listening confirmation.
-
-The CI template is `scripts/ci-workflow.yml`. To enable GitHub Actions, copy it to
-`.github/workflows/ci.yml` and push with workflow permission. The initial publishing
-credential lacked that permission; CI is not enabled merely by having this template.

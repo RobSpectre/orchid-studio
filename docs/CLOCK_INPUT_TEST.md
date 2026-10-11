@@ -13,18 +13,19 @@ support alone establishes nothing about incoming clock.
 
 ## Controlled hardware test
 
-`scripts/check-orchid-clock.py` is an explicit hardware diagnostic, separate from
-the product's software-only output path. By default it prints the plan without
-opening MIDI. `--run` opens only uniquely named `Orchid` input/output ports and
-waits for a performed note. No input is echoed. Its only allowed outgoing messages
-are F8 (Timing Clock), FA (Start), and FC (Stop); it sends no notes, CC or SysEx.
-The finite test stops its clock after 30 seconds and releases its ports. It does
-not modify firmware or replay historical captures.
+The test used a one-off hardware diagnostic, `scripts/check-orchid-clock.py`,
+separate from the product's software-only output path; it was removed after the
+completed test below (recover it from Git history to rerun). It opened only
+uniquely named `Orchid` input/output ports and waited for a performed note. No
+input was echoed. Its only outgoing messages were F8 (Timing Clock), FA (Start)
+and FC (Stop); it sent no notes, CC or SysEx. The finite test stopped its clock
+after 30 seconds and released its ports. It did not modify firmware or replay
+historical captures.
 
-Before running, obtain the user's readiness, displayed hardware BPM, and a
-repeating arpeggio selected without replacing the Sound preset. Keep hardware
-volume low. Ask the user to hold one chord throughout, without changing tempo or
-the Perform setting. Record firmware and actual channel settings when available.
+Before the run, the user confirmed readiness and the displayed hardware BPM, and
+selected a repeating arpeggio without replacing the Sound preset, at low hardware
+volume. The user held one chord throughout, without changing tempo or the Perform
+setting.
 
 Six phases of five seconds each:
 
@@ -35,8 +36,8 @@ Six phases of five seconds each:
 5. 137 BPM clock while running.
 6. MIDI Stop and passive recovery.
 
-Raw received packets and timestamped outgoing clock calls are saved under
-Git-ignored `local/clock-test/`; existing capture files cannot be overwritten.
+Raw received packets and timestamped outgoing clock calls were saved under
+Git-ignored `local/clock-test/`.
 Summaries group simultaneous notes and compute intervals independently for each
 channel, excluding the first second of each phase for settling. A repeated
 performed stream identifies the candidate arp channel; no default role is assumed.

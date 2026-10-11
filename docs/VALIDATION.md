@@ -157,7 +157,7 @@
 - Restarted the service with the expanded engine; reselected only `Orchid Studio
   Playback` in Pistil. Preserved `* ORCHID EP`, MacBook Pro Speakers, 44.1 kHz and
   512-sample buffer. No direct Orchid or Hydrogen MIDI inputs were enabled.
-- Generated a reproducible synthetic-chord tour with `scripts/make-perform-tour.py`
+- Generated a reproducible synthetic-chord tour with a one-off script (since removed)
   into ignored `local/perform-tour.json`. Played all eight modes and all eight
   bank entries in four-beat sections at 96 BPM, velocity 64. The user initially
   reported silence, then confirmed “I can hear the demo now.” The remaining Harp

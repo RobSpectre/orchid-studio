@@ -110,23 +110,6 @@ Optional top-level `"drums":{"engine":"studio","beat":"glass-house","volume":0.3
 plays a Studio beat from Perform's own beat position in the native audio host
 (`--pistil-host`); live BPM updates move both.
 
-## Reproducible listening tour
-
-Generate a synthetic chord tour from the actual engine (no hardware recording or
-MIDI output during generation):
-
-```sh
-.venv/bin/python scripts/make-perform-tour.py > local/perform-tour.json
-orchid-studio play local/perform-tour.json --dry-run
-orchid-studio play local/perform-tour.json --wait 10
-```
-
-Stop any existing live service before standalone playback, then select the newly
-created `Orchid Studio Playback` input in Pistil during the wait. The tour contains
-15 four-beat sections: Off, Strum, Strum 2, Slop, Arp, Arp 2, Harp, then Tresillo,
-Pulse, Offbeat, Backbeat, Shuffle, Rising, Falling and Pendulum. Playback lasts
-37.5 seconds at 96 BPM. Its `sections` metadata records each section's beat offset.
-
 ## Sound dial
 
 Direct Orchid note input stays disabled in Pistil. Use API `sound-follow` or start
