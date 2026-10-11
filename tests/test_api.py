@@ -7,25 +7,12 @@ import threading
 import time
 import unittest
 from unittest.mock import Mock, patch
-import xml.etree.ElementTree as ET
 
 from orchid_studio.api import Controller, HttpAPI
 from orchid_studio.drum_library import DrumLibrary
 from orchid_studio.api_client import request
 from orchid_studio.beats import catalog, patterns
-from orchid_studio.drum_song import write_electronic_song, validate_beat_bank
 from orchid_studio.perform import DEFAULTS, settings
-
-
-def make_bank(folder):
-    voices = sorted({n['instrument'] for p in patterns() for n in p['notes']})
-    kit = Path(folder) / 'drumkit.xml'
-    kit.write_text('<drumkit_info><name>Test</name><instrumentList>' + ''.join(
-        f'<instrument><id>{i}</id><name>{v}</name></instrument>' for i, v in enumerate(voices)) +
-        '</instrumentList></drumkit_info>')
-    song = Path(folder) / 'electronic.h2song'
-    write_electronic_song(song, folder)
-    return song
 
 
 class BeatBankTests(unittest.TestCase):
@@ -59,19 +46,6 @@ class BeatBankTests(unittest.TestCase):
                              and phrase * 384 + 360 <= n["position"] < (phrase + 1) * 384]
                     self.assertEqual(len(fills), 2)
                     self.assertTrue(all(n["position"] % 12 == 0 and n["velocity"] <= .20 for n in fills))
-
-    def test_song_xml_matches_catalog_and_disables_midi_output(self):
-        with tempfile.TemporaryDirectory() as folder:
-            song = make_bank(folder)
-            self.assertEqual(validate_beat_bank(song), str(song.resolve()))
-            root = ET.parse(song).getroot()
-            self.assertEqual([p.findtext('name') for p in root.findall('patternList/pattern')], [b['name'] for b in catalog()])
-            self.assertTrue(all(p.findtext('size') == '2304' for p in root.findall('patternList/pattern')))
-            self.assertTrue(all(i.findtext('midiOutChannel') == '-1' for i in root.findall('instrumentList/instrument')))
-            root.find('patternList/pattern/size').text = '384'
-            ET.ElementTree(root).write(song)
-            with self.assertRaises(ValueError):
-                validate_beat_bank(song)
 
 
 class APITests(unittest.TestCase):
@@ -123,25 +97,25 @@ class APITests(unittest.TestCase):
                 c.close()
         source.close_port.assert_called_once()
 
-    def test_named_beats_require_bank_and_preserve_tempo_on_selection(self):
+    def test_named_beats_require_loaded_rack_and_preserve_tempo_on_selection(self):
         drums = Mock()
-        drums.command.return_value = {'status': 'sent', 'confirmed': False}
-        with tempfile.TemporaryDirectory() as folder:
-            c = self.controller(drums=drums, drum_bank=make_bank(folder))
-            self.assertEqual(c.execute({'command': 'beats-select', 'beat': 'liquid-circuit'})['status'], 'error')
-            self.assertEqual(c.execute({'command': 'beats-load'})['status'], 'sent')
-            drums.command.reset_mock()
-            self.assertEqual(c.execute({'command': 'beats-select', 'beat': 'daybreak-rush'})['beat']['pattern'], 11)
-            drums.command.assert_not_called()
-            self.assertEqual(c.transport.drums.document['id'], 'daybreak-rush')
-            c.execute({'command': 'beats-play', 'beat': 'liquid-circuit', 'bpm': 78, 'volume': .2})
-            deadline=time.monotonic()+1
-            while c.transport.drums.hits_sent == 0 and time.monotonic()<deadline: time.sleep(.005)
-            self.assertGreater(c.transport.drums.hits_sent,0)
-            self.assertFalse(any(call.args[0]=='play' for call in drums.command.call_args_list))
-            self.assertEqual(c.execute({'command': 'beats-load'})['status'], 'error')
-            c.execute({'command': 'stop'})
-            self.assertFalse(c.snapshot()['drums']['playing_requested'])
+        drums.command.return_value = {'status': 'ok', 'engine': 'studio-native'}
+        drums.load.return_value = {'status': 'ok', 'engine': 'studio-native', 'sounds': 0}
+        c = self.controller(drums=drums)
+        self.assertEqual(c.execute({'command': 'beats-select', 'beat': 'liquid-circuit'})['status'], 'error')
+        self.assertEqual(c.execute({'command': 'beats-load'})['status'], 'ok')
+        drums.command.reset_mock()
+        self.assertEqual(c.execute({'command': 'beats-select', 'beat': 'daybreak-rush'})['beat']['pattern'], 11)
+        drums.command.assert_not_called()
+        self.assertEqual(c.transport.drums.document['id'], 'daybreak-rush')
+        c.execute({'command': 'beats-play', 'beat': 'liquid-circuit', 'bpm': 78, 'volume': .2})
+        deadline=time.monotonic()+1
+        while c.transport.drums.hits_sent == 0 and time.monotonic()<deadline: time.sleep(.005)
+        self.assertGreater(c.transport.drums.hits_sent,0)
+        self.assertFalse(any(call.args[0]=='play' for call in drums.command.call_args_list))
+        self.assertEqual(c.execute({'command': 'beats-load'})['status'], 'error')
+        c.execute({'command': 'stop'})
+        self.assertFalse(c.snapshot()['drums']['playing_requested'])
 
     def test_unknown_beat_and_invalid_setting_do_not_interrupt_playback(self):
         c = self.controller()
@@ -149,7 +123,7 @@ class APITests(unittest.TestCase):
             c.execute({'command': 'demo'})
             self.assertTrue(c.transport.playing)
             result = c.execute({'command': 'perform', 'input': 'Orchid', 'chord_channel': 3,
-                                'drums': {'engine': 'hydrogen', 'beat': 'nonexistent'}})
+                                'drums': {'engine': 'studio', 'beat': 'nonexistent'}})
             self.assertEqual(result['status'], 'error')
             self.assertTrue(c.transport.playing)
             self.assertEqual(c.execute({'command': 'perform', 'input': 'Orchid', 'chord_channel': 3,

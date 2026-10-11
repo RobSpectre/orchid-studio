@@ -479,7 +479,7 @@ List available sounds, kits and provenance.
 
 ### kits-import
 
-Import local Hydrogen-compatible kit/archive.
+Import a local Hydrogen-format kit directory or .h2drumkit archive.
 
 **Fields:** path: local directory or archive
 
@@ -503,11 +503,11 @@ Play one drum sample.
 
 ### drums
 
-Drum volume and legacy backend actions.
+Native drum volume, mute and pattern controls.
 
-**Fields:** action; value?; strip?; see capabilities.drum_actions
+**Fields:** action: stop / mute / unmute / panic / volume / pattern / bpm; value?: volume 0–1.5, pattern index, or bpm
 
-**Behavior:** Prefer mixer-set for native volume/pan and Studio transport commands
+**Behavior:** Prefer mixer-set for volume/pan and Studio transport commands
 
 ## Drum draft operations
 

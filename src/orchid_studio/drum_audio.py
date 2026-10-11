@@ -1,9 +1,8 @@
-"""Render local Hydrogen sample assets in Studio's existing native audio host."""
+"""Render the local drum rack's samples in Studio's existing native audio host."""
 import xml.etree.ElementTree as ET
 
 
 class NativeDrumAudio:
-    native_audio = True
     def __init__(self, router, library):
         self.router=router
         self.library=library
@@ -18,7 +17,7 @@ class NativeDrumAudio:
         return self.router.host
 
     def load(self):
-        # The native host can start without Hydrogen or an installed drum kit.
+        # The native host can start without an installed drum kit.
         # Beat playback validates its required sounds separately.
         specs=[]
         for sound in self.library.sounds.values():
@@ -56,6 +55,3 @@ class NativeDrumAudio:
         else:
             raise ValueError('native drum controls: volume, mute, unmute, stop; edit lane sounds/volume in the beat')
         return {'status':'ok','engine':'studio-native'}
-
-    def feedback(self):
-        return self.host.call('status')['drums']

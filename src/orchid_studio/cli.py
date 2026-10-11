@@ -11,7 +11,6 @@ import signal
 import time
 import threading
 from pathlib import Path
-from contextlib import nullcontext
 
 from . import __version__
 
@@ -72,7 +71,6 @@ def midi_inventory():
 
 
 def diagnose(include_midi=False):
-    from .hydrogen import diagnostics as hydrogen_diagnostics
     system = platform.system()
     home = Path.home()
     from .paths import data_dir, host_path
@@ -83,7 +81,6 @@ def diagnose(include_midi=False):
         "release": platform.release(), "architecture": platform.machine(),
         "python": platform.python_version(), "python_executable": sys.executable,
         "pistil_linux_status": "unverified; no official native Linux release listed",
-        "hydrogen": hydrogen_diagnostics(),
     }
     if system == "Linux":
         os_release = Path("/etc/os-release")
@@ -159,25 +156,6 @@ def main(argv=None):
     server.add_argument("--sound-input", help="Follow fresh Sound-dial reports from this exact physical input")
     server.add_argument("--chord-channel", type=int, default=3, choices=range(1,17), help="Confirmed raw Chord MIDI channel for Play Along")
     server.add_argument("--session", type=Path, help="Restore saved loop JSON after host startup; does not play automatically")
-    server.add_argument("--drum-bank", type=Path, help="Generated electronic .h2song path for beats-load")
-    for command in (server, demo, play):
-        command.add_argument("--hydrogen", action="store_true", help="Enable local Hydrogen OSC control")
-        command.add_argument("--hydrogen-port", type=int, default=9000)
-        command.add_argument("--hydrogen-client-port", type=int, default=9001)
-    drums_cmd = commands.add_parser("drums", help="Control Hydrogen using local OSC (no MIDI required)")
-    drums_cmd.add_argument("action", choices=["play", "stop", "pause", "mute", "unmute", "panic",
-        "bpm", "volume", "pattern", "mode", "loop", "kit", "open-song", "strip-volume",
-        "strip-pan", "strip-mute-toggle", "strip-solo-toggle"])
-    drums_cmd.add_argument("value", nargs="?")
-    drums_cmd.add_argument("--strip", type=int)
-    drums_cmd.add_argument("--port", type=int, default=9000)
-    drums_cmd.add_argument("--client-port", type=int, default=9001)
-    drums_cmd.add_argument("--dry-run", action="store_true")
-    drum_song = commands.add_parser("drums-song", help="Write original Hydrogen patterns using an installed kit")
-    drum_song.add_argument("output", type=Path)
-    drum_song.add_argument("--kit-directory", type=Path, required=True)
-    drum_song.add_argument("--bpm", type=float, default=96)
-    drum_song.add_argument("--bank", choices=("demo", "electronic"), default="demo")
     watch = commands.add_parser("monitor", help="Read channel activity from an exact input; sends no MIDI")
     capture = commands.add_parser("import-capture", help="Convert timestamped received notes/clock into a software loop; sends nothing")
     capture.add_argument("capture", type=Path)
@@ -243,37 +221,10 @@ def main(argv=None):
             emit({"status": "written", "path": str(args.output.resolve()),
                   "source_bpm": session["bpm"], "notes": len(session["tracks"][0]["notes"]), "sent_midi": False})
             return 0
-        if args.command == "drums-song":
-            from .drum_song import write_demo_song, write_electronic_song
-            writer = write_electronic_song if args.bank == "electronic" else write_demo_song
-            emit(writer(args.output, args.kit_directory, args.bpm))
-            return 0
         if args.command == "serve" and args.pistil_host and platform.system() != "Darwin":
             raise ValueError('The full Pistil host supports macOS only; Windows/Linux hosting is not implemented.')
         from .midi import VIRTUAL_PORT, monitor, software_output
-        from .sequencer import Player, compile_session, demo_session, number
-        from .hydrogen import HydrogenClient, command_message, session_drums
-        if args.command == "drums":
-            value = args.value
-            if value is not None and args.action not in {"kit", "open-song", "mode"}:
-                value = json.loads(value)
-            if args.action == "panic":
-                if value is not None or args.strip is not None:
-                    raise ValueError("panic takes no value or strip")
-                address, arguments = "/Hydrogen/STOP + /Hydrogen/MUTE", ()
-            else:
-                address, arguments = command_message(args.action, value, args.strip)
-            if args.dry_run:
-                emit({"status": "dry_run", "address": address, "arguments": arguments})
-                return 0
-            with HydrogenClient(args.port, args.client_port) as drums:
-                if args.action == "panic":
-                    drums.panic()
-                    result = {"status": "sent", "action": "panic", "confirmed": False}
-                else:
-                    result = drums.command(args.action, value, args.strip)
-                emit({**result, "feedback": drums.feedback()})
-            return 0
+        from .sequencer import NO_DRUMS, Player, compile_session, demo_session, number, session_drums
         if args.command == "monitor":
             number(args.seconds, 0.1, 120, "seconds")
             emit(monitor(args.input, args.seconds))
@@ -287,10 +238,10 @@ def main(argv=None):
                 integer(args.api_port, 1024, 65535, "API port")
             previous = signal.signal(signal.SIGTERM, interrupted)
             try:
-                with (HydrogenClient(args.hydrogen_port, args.hydrogen_client_port) if args.hydrogen else nullcontext()) as drums, software_output() as output:
+                with software_output() as output:
                     emit({"status": "ready", "output": VIRTUAL_PORT})
-                    serve(output.send_message, sys.stdin, emit, drums=drums, api_port=args.api_port,
-                          api_only=args.api_only, drum_bank=args.drum_bank, sound_input=args.sound_input, pistil_host=args.pistil_host,
+                    serve(output.send_message, sys.stdin, emit, api_port=args.api_port,
+                          api_only=args.api_only, sound_input=args.sound_input, pistil_host=args.pistil_host,
                           chord_channel=args.chord_channel, session=args.session)
             finally:
                 signal.signal(signal.SIGTERM, previous)
@@ -302,10 +253,8 @@ def main(argv=None):
         )
         number(args.wait, 0, 120, "wait")
         drum_config = session_drums(session)
-        if drum_config is not None:
-            command_message("bpm", bpm)
-            if not args.hydrogen and not args.dry_run:
-                raise ValueError("session uses Hydrogen; add --hydrogen")
+        if drum_config is not None and not args.dry_run:
+            raise ValueError(NO_DRUMS + ", then send the session with the API play command")
         if args.command == "demo" and args.write_session:
             # Never overwrite an existing composition implicitly.
             with args.write_session.open("x") as handle:
@@ -322,18 +271,12 @@ def main(argv=None):
             return 0
         previous = signal.signal(signal.SIGTERM, interrupted)
         try:
-            with (HydrogenClient(args.hydrogen_port, args.hydrogen_client_port) if args.hydrogen else nullcontext()) as drums, software_output() as output:
+            with software_output() as output:
                 emit({"status": "ready", **summary, "wait_seconds": args.wait})
                 player = Player(output.send_message, channels)
                 # The wait occurs before any MIDI is sent.
                 time.sleep(args.wait)
-                try:
-                    if drum_config is not None:
-                        drums.start(bpm, drum_config)
-                    player.play(events, bpm, length)
-                finally:
-                    if drum_config is not None:
-                        drums.stop()
+                player.play(events, bpm, length)
         finally:
             signal.signal(signal.SIGTERM, previous)
         emit({"status": "completed", **summary, "cleanup": "sent", "audibility": "requires listener confirmation"})

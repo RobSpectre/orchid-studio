@@ -6,7 +6,7 @@ import time
 
 from .midi import VIRTUAL_PORT, backend, exact_port
 from .perform import PerformanceEngine, settings
-from .sequencer import Player, compile_session, integer, number
+from .sequencer import NO_DRUMS, Player, compile_session, integer, number
 
 DEFAULTS = {"bars": 4, "grid": .5, "count_in": 4}
 
@@ -381,8 +381,8 @@ class Looper:
         if record_slot is not None:
             integer(record_slot,1,4,'slot')
         if drum_config is not None and self.drums is None:
-            raise ValueError('drums require serve --hydrogen')
-        if drum_config is not None and hasattr(self.drums, "prepare"):
+            raise ValueError(NO_DRUMS)
+        if drum_config is not None:
             self.drums.prepare(drum_config)
         # Open before stopping existing loop playback so a missing input is harmless.
         source = backend().MidiIn()

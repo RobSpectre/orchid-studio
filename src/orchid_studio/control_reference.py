@@ -58,10 +58,10 @@ ROWS = {
  'beat-edit':('Transform a draft without saving: clone/new, rename, resize, swing, lanes, steps and bars.','document OR beat: source; action: capabilities.beat_editor.actions; action-specific fields in beat_editor','Returns document + undo_document; no library/playback mutation until beat-save'),
  'beat-save':('Validate/persist a beat document; also imports beat JSON.','document: orchid-beat version 1','Selected playing beat updates next bar; clone ID to preserve original'),
  'kits-list':('List available sounds, kits and provenance.','none','Read-only'),
- 'kits-import':('Import local Hydrogen-compatible kit/archive.','path: local directory or archive','Stop playback; single-sample unpitched kits'),
+ 'kits-import':('Import a local Hydrogen-format kit directory or .h2drumkit archive.','path: local directory or archive','Stop playback; single-sample unpitched kits'),
  'sample-upload':('Import a local PCM WAV as a drum sound.','name; data:base64 WAV; license?:text','Stop playback; <=8 MiB WAV and <=30 seconds'),
  'sound-preview':('Play one drum sample.','sound: sample ID','Stop transport; native rack must be loaded'),
- 'drums':('Drum volume and legacy backend actions.','action; value?; strip?; see capabilities.drum_actions','Prefer mixer-set for native volume/pan and Studio transport commands'),
+ 'drums':('Native drum volume, mute and pattern controls.','action: stop|mute|unmute|panic|volume|pattern|bpm; value?: volume 0–1.5, pattern index, or bpm','Prefer mixer-set for volume/pan and Studio transport commands'),
 }
 
 UI_MAP = {

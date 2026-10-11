@@ -1,4 +1,4 @@
-"""Editable beat documents and a local, mixed Hydrogen sound rack.
+"""Editable beat documents and a local, mixed sound rack built from Hydrogen-format kits.
 
 Samples stay local, with source author/license metadata. No hardware MIDI output.
 """
@@ -262,30 +262,6 @@ class DrumLibrary:
             if (path/'drumkit.xml').is_file():
                 self.import_kit(path);return
         raise ValueError('import the TR808EmulationKit directory with kits-import first')
-
-    def rack(self):
-        self.ensure_stock()
-        song=ET.Element('song')
-        for k,v in {'version':'1.2.0','name':'Orchid Studio Sound Rack','bpm':124,'volume':.3,
-                    'mode':'pattern','loopEnabled':'false','isMuted':'false','humanize_time':0,
-                    'humanize_velocity':0,'swing_factor':0,'metronomeVolume':0}.items():put(song,k,v)
-        components=ET.SubElement(song,'componentList');component=ET.SubElement(components,'drumkitComponent')
-        for k,v in {'id':0,'name':'Main','volume':1}.items():put(component,k,v)
-        instruments=ET.SubElement(song,'instrumentList')
-        for i,s in enumerate(self.sounds.values()):
-            ins=ET.fromstring(s['instrument'])
-            # Keep all sounds loaded together. Equal note/index mapping works in both Hydrogen map modes.
-            for k,v in {'id':i,'name':s['name'],'midiOutChannel':-1,'midiOutNote':36+i,
-                        'isMuted':'false','isSoloed':'false','muteGroup':-1}.items():put(ins,k,v)
-            for component in ins.findall('instrumentComponent'):put(component,'component_id',0)
-            instruments.append(ins)
-        p=ET.SubElement(ET.SubElement(song,'patternList'),'pattern')
-        put(p,'name','Studio schedules every hit');put(p,'size',192);put(p,'denominator',4)
-        ET.SubElement(p,'noteList');ET.SubElement(song,'patternSequence')
-        for tag in ('virtualPatternList','ladspa','BPMTimeLine','tagTimeLine'):ET.SubElement(song,tag)
-        path=self.root/'studio-rack.h2song'
-        atomic(path,ET.tostring(song,encoding='unicode'))
-        return str(path.resolve())
 
     def sound_list(self):
         return [{k:v for k,v in s.items() if k!='instrument'} for s in self.sounds.values()]

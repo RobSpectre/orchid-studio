@@ -4,8 +4,7 @@ import json
 import threading
 import time
 
-from .sequencer import Player, compile_session
-from .hydrogen import command_message, session_drums
+from .sequencer import NO_DRUMS, Player, compile_session, number, session_drums
 
 
 class PlaybackStopped(Exception):
@@ -90,10 +89,9 @@ class Transport:
         drum_config = session_drums(session)
         if drum_config is not None:
             if self.drums is None:
-                raise ValueError("session uses Hydrogen; start serve with --hydrogen")
-            command_message("bpm", tempo)
-            if hasattr(self.drums, "prepare"):
-                self.drums.prepare(drum_config)
+                raise ValueError(NO_DRUMS)
+            number(tempo, 30, 300, "drums bpm")
+            self.drums.prepare(drum_config)
         self.stop()
         self.stop_requested.clear()
         self.timeline.reset(tempo)
@@ -160,8 +158,8 @@ class Transport:
         from .perform import LivePerformance
         drum_config = session_drums(request)
         if drum_config is not None and self.drums is None:
-            raise ValueError("drums require serve --hydrogen")
-        if drum_config is not None and hasattr(self.drums, "prepare"):
+            raise ValueError(NO_DRUMS)
+        if drum_config is not None:
             self.drums.prepare(drum_config)
         live = LivePerformance(self.send, self.report, self.stop_requested,
                                input_name=request.get("input"), chord_channel=request.get("chord_channel"),
@@ -184,11 +182,11 @@ class Transport:
         self.worker.start()
 
 
-def serve(send, lines, report, drums=None, *, api_port=None, api_only=False, drum_bank=None, sound_input=None, pistil_host=False, chord_channel=3, session=None):
-    """One controller owns MIDI/OSC for both JSON lines and the loopback HTTP API."""
+def serve(send, lines, report, *, api_port=None, api_only=False, sound_input=None, pistil_host=False, chord_channel=3, session=None):
+    """One controller owns MIDI for both JSON lines and the loopback HTTP API."""
     from contextlib import nullcontext
     from .api import Controller, HttpAPI
-    controller = Controller(send, report, drums, drum_bank=drum_bank)
+    controller = Controller(send, report)
     from .midi_connection import MidiConnection
     controller.midi_connection = MidiConnection()
     controller.midi_connection.start()
